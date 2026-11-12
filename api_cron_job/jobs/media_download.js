@@ -14,7 +14,10 @@ import {
 import { claimNextPending } from '../../database/modelCRUD/downloadMedia/ClaimNextPending.js';
 import { update } from '../../database/modelCRUD/downloadMedia/Update.js';
 import { getDownloader } from '../../api_downloader/downloaders/index.js';
-import { download as ytDlpDownload } from '../../api_downloader/services/ytdlp/YtDlpService.js';
+import {
+  download as ytDlpDownload,
+  probe as ytDlpProbe,
+} from '../../api_downloader/services/ytdlp/YtDlpService.js';
 import {
   ensureMediaDir,
   removeStemArtifacts,
@@ -52,6 +55,11 @@ async function processOne(db, row) {
   const outputDir = await ensureMediaDir(source, site);
 
   try {
+    if (typeof downloader.assertTargetMatches === 'function') {
+      const info = await ytDlpProbe({ url, extraArgs: downloader.extraArgs });
+      downloader.assertTargetMatches(row, info);
+    }
+
     const result = await ytDlpDownload({
       url,
       outputDir,

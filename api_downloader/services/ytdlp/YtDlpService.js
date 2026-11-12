@@ -144,6 +144,39 @@ function parsePrintLines(stdout) {
   };
 }
 
+export async function probe({ url, extraArgs } = {}) {
+  if (typeof url !== 'string' || !url.trim()) {
+    throw new Error('url is required');
+  }
+
+  const ytDlpPath = resolveYtDlpPath();
+  const timeoutMs = resolveTimeoutMs();
+  const cookiesFile = resolveCookiesFile();
+  const args = [
+    '--dump-single-json',
+    '--no-playlist',
+    '--no-warnings',
+  ];
+
+  if (cookiesFile) {
+    args.push('--cookies', cookiesFile);
+  }
+
+  if (Array.isArray(extraArgs) && extraArgs.length > 0) {
+    args.push(...extraArgs);
+  }
+
+  args.push(url.trim());
+
+  const { stdout } = await runYtDlp(ytDlpPath, args, timeoutMs);
+
+  try {
+    return JSON.parse(stdout);
+  } catch {
+    throw new Error('yt-dlp probe returned invalid JSON');
+  }
+}
+
 export async function download({ url, outputDir, outputStem, extraArgs } = {}) {
   if (typeof url !== 'string' || !url.trim()) {
     throw new Error('url is required');
@@ -201,5 +234,6 @@ export async function download({ url, outputDir, outputStem, extraArgs } = {}) {
 }
 
 export default {
+  probe,
   download,
 };

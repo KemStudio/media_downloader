@@ -16,7 +16,7 @@ export function claimNextPending(db) {
       `SELECT ${ID}
        FROM ${TABLE_NAME}
        WHERE ${STATUS} = ?
-       ORDER BY ${ID} ASC
+       ORDER BY ${ID} DESC
        LIMIT 1`,
     )
     .get(STATUSES.PENDING);
