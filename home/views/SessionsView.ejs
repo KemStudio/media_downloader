@@ -7,29 +7,30 @@
   data-logout-others-endpoint="<%= sessionsLogoutOthersEndpoint %>"
   data-page-limit="<%= sessionsPageLimit %>"
 >
-  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-    <div>
-      <h1 class="text-2xl font-semibold mb-2">Sessions</h1>
-      <p class="opacity-70 text-sm">Manage devices signed in to your account.</p>
-    </div>
-    <button type="button" id="logout-others-button" class="btn btn-outline btn-sm">
-      Đăng xuất tất cả máy khác
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-5">
+    <header class="md-page-header mb-0">
+      <h1 class="md-page-title">Sessions</h1>
+      <p class="md-page-desc">Manage devices signed in to your account.</p>
+    </header>
+    <button type="button" id="logout-others-button" class="btn btn-outline btn-sm gap-1.5 shrink-0">
+      <%- include('partials/icon', { name: 'sign-out', size: 'sm' }) %>
+      Sign out other devices
     </button>
   </div>
 
   <div id="sessions-error" class="alert alert-error text-sm hidden mb-4" role="alert"></div>
-  <p id="sessions-status" class="text-sm opacity-70 mb-4">Loading sessions…</p>
+  <p id="sessions-status" class="text-sm text-base-content/65 mb-4">Loading sessions…</p>
 
-  <div id="sessions-results" class="mb-6">
-    <div id="sessions-table-wrap" class="hidden md:block overflow-x-auto bg-base-100 rounded-box shadow-sm">
-      <table class="table">
+  <div id="sessions-results" class="mb-5">
+    <div id="sessions-table-wrap" class="hidden md:block overflow-x-auto md-surface">
+      <table class="table table-sm">
         <thead>
           <tr>
             <th>Device</th>
             <th>IP</th>
             <th>Created</th>
             <th>Last seen</th>
-            <th class="w-28">Action</th>
+            <th class="w-32">Action</th>
           </tr>
         </thead>
         <tbody id="sessions-table-body"></tbody>
@@ -39,9 +40,15 @@
   </div>
 
   <div class="flex items-center justify-between gap-3">
-    <button type="button" id="sessions-prev" class="btn btn-outline btn-sm" disabled>Previous</button>
-    <span id="sessions-page-info" class="text-sm opacity-70"></span>
-    <button type="button" id="sessions-next" class="btn btn-outline btn-sm" disabled>Next</button>
+    <button type="button" id="sessions-prev" class="btn btn-outline btn-sm gap-1.5" disabled>
+      <%- include('partials/icon', { name: 'caret-left', size: 'sm' }) %>
+      Previous
+    </button>
+    <span id="sessions-page-info" class="text-sm text-base-content/65"></span>
+    <button type="button" id="sessions-next" class="btn btn-outline btn-sm gap-1.5" disabled>
+      Next
+      <%- include('partials/icon', { name: 'caret-right', size: 'sm' }) %>
+    </button>
   </div>
 </section>
 

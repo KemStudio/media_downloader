@@ -123,6 +123,14 @@ function createAccountsPage(root) {
     return true;
   }
 
+  function iconLabel(name, label) {
+    if (window.MdIcons?.labeled) {
+      return window.MdIcons.labeled(name, label);
+    }
+
+    return label;
+  }
+
   function actionButtons(account) {
     const buttons = [];
     const accountId = escapeHtml(account.id);
@@ -130,24 +138,24 @@ function createAccountsPage(root) {
     if (canChangeState(account)) {
       if (account.state === stateActive) {
         buttons.push(
-          `<button type="button" class="btn btn-outline btn-sm" data-account-action="state" data-account-id="${accountId}" data-next-state="${escapeHtml(stateDeactive)}">Deactive</button>`,
+          `<button type="button" class="btn btn-outline btn-sm gap-1.5" data-account-action="state" data-account-id="${accountId}" data-next-state="${escapeHtml(stateDeactive)}">${iconLabel('pause-circle', 'Deactive')}</button>`,
         );
       }
 
       if (account.state === stateDeactive) {
         buttons.push(
-          `<button type="button" class="btn btn-outline btn-sm" data-account-action="state" data-account-id="${accountId}" data-next-state="${escapeHtml(stateActive)}">Active</button>`,
+          `<button type="button" class="btn btn-outline btn-sm gap-1.5" data-account-action="state" data-account-id="${accountId}" data-next-state="${escapeHtml(stateActive)}">${iconLabel('check-circle', 'Active')}</button>`,
         );
       }
 
       buttons.push(
-        `<button type="button" class="btn btn-outline btn-warning btn-sm" data-account-action="state" data-account-id="${accountId}" data-next-state="${escapeHtml(stateHide)}">Hide</button>`,
+        `<button type="button" class="btn btn-outline btn-warning btn-sm gap-1.5" data-account-action="state" data-account-id="${accountId}" data-next-state="${escapeHtml(stateHide)}">${iconLabel('eye-slash', 'Hide')}</button>`,
       );
     }
 
     if (account.state === stateHide && canDelete) {
       buttons.push(
-        `<button type="button" class="btn btn-outline btn-error btn-sm" data-account-action="delete" data-account-id="${accountId}">Delete</button>`,
+        `<button type="button" class="btn btn-outline btn-error btn-sm gap-1.5" data-account-action="delete" data-account-id="${accountId}">${iconLabel('trash', 'Delete')}</button>`,
       );
     }
 
@@ -201,7 +209,7 @@ function createAccountsPage(root) {
       `);
 
       cards.push(`
-        <li class="bg-base-100 rounded-box p-4 shadow-sm flex flex-col gap-3">
+        <li class="md-surface p-4 flex flex-col gap-3">
           <div class="flex flex-col gap-1 min-w-0">
             <p class="font-semibold break-all">${username}</p>
             <p class="text-sm opacity-70">Role: ${role}</p>

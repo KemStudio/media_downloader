@@ -1,2 +1,102 @@
 @import "tailwindcss";
-@plugin "daisyui";
+
+@plugin "daisyui" {
+  themes: mdlight --default;
+}
+
+@plugin "daisyui/theme" {
+  name: "mdlight";
+  default: true;
+  color-scheme: light;
+  --color-base-100: #ffffff;
+  --color-base-200: #f8fafc;
+  --color-base-300: #e2e8f0;
+  --color-base-content: #0f172a;
+  --color-primary: #1e3a5f;
+  --color-primary-content: #ffffff;
+  --color-secondary: #334155;
+  --color-secondary-content: #ffffff;
+  --color-accent: #059669;
+  --color-accent-content: #ffffff;
+  --color-neutral: #1e293b;
+  --color-neutral-content: #f8fafc;
+  --color-info: #0284c7;
+  --color-info-content: #ffffff;
+  --color-success: #059669;
+  --color-success-content: #ffffff;
+  --color-warning: #d97706;
+  --color-warning-content: #ffffff;
+  --color-error: #dc2626;
+  --color-error-content: #ffffff;
+  --radius-selector: 0.5rem;
+  --radius-field: 0.375rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --color-md-bg: #f8fafc;
+  --color-md-primary: #1e3a5f;
+  --color-md-accent: #059669;
+  --color-md-destructive: #dc2626;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+  }
+
+  body {
+    @apply bg-base-200 text-base-content antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .md-page-header {
+    @apply mb-5;
+  }
+
+  .md-page-title {
+    @apply text-xl font-semibold tracking-tight text-base-content;
+  }
+
+  .md-page-desc {
+    @apply mt-1 text-sm text-base-content/65;
+  }
+
+  .md-surface {
+    @apply bg-base-100 border border-base-300/80 rounded-box shadow-sm;
+  }
+
+  .md-nav-link {
+    @apply btn btn-ghost btn-sm justify-start gap-2 font-medium;
+  }
+
+  .md-nav-link[aria-current="page"] {
+    @apply bg-primary/10 text-primary;
+  }
+
+  .md-icon {
+    @apply inline-block shrink-0;
+  }
+}

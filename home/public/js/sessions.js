@@ -2,7 +2,7 @@
 const GENERIC_ERROR = 'Something went wrong. Please try again.';
 const UNKNOWN_DEVICE = 'Unknown device';
 const EMPTY_VALUE = '—';
-const CURRENT_BADGE = 'Thiết bị này';
+const CURRENT_BADGE = 'This device';
 
 function escapeHtml(value) {
   return String(value)
@@ -104,6 +104,14 @@ function createSessionsPage(root) {
     });
   }
 
+  function iconLabel(name, label) {
+    if (window.MdIcons?.labeled) {
+      return window.MdIcons.labeled(name, label);
+    }
+
+    return label;
+  }
+
   function sessionDisplayParts(session) {
     const device = escapeHtml(deviceLabel(session.userAgent));
     const ip = escapeHtml(displayValue(session.ip));
@@ -114,7 +122,7 @@ function createSessionsPage(root) {
       : '';
     const action = session.isCurrent
       ? ''
-      : `<button type="button" class="btn btn-outline btn-error btn-sm" data-logout-session-id="${escapeHtml(session.id)}">Logout</button>`;
+      : `<button type="button" class="btn btn-outline btn-error btn-sm gap-1.5" data-logout-session-id="${escapeHtml(session.id)}">${iconLabel('sign-out', 'Sign out')}</button>`;
 
     return { device, ip, createdAt, lastSeenAt, badge, action };
   }
@@ -163,7 +171,7 @@ function createSessionsPage(root) {
       `);
 
       cards.push(`
-        <li class="bg-base-100 rounded-box p-4 shadow-sm flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <li class="md-surface p-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div class="flex flex-col gap-1 min-w-0">
             <div class="flex flex-wrap items-center gap-2">
               <p class="font-semibold break-all">${device}</p>

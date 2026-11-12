@@ -10,7 +10,7 @@
   <div id="auth-error" class="alert alert-error text-sm hidden" role="alert"></div>
 
   <label class="form-control w-full">
-    <span class="label-text">Username</span>
+    <span class="label-text font-medium">Username</span>
     <input
       type="text"
       name="username"
@@ -24,7 +24,7 @@
   </label>
 
   <label class="form-control w-full">
-    <span class="label-text">Password</span>
+    <span class="label-text font-medium">Password</span>
     <input
       type="password"
       name="password"
@@ -37,7 +37,7 @@
   </label>
 
   <label class="form-control w-full">
-    <span class="label-text">Confirm password</span>
+    <span class="label-text font-medium">Confirm password</span>
     <input
       type="password"
       name="confirmPassword"
@@ -49,17 +49,23 @@
     >
   </label>
 
-  <p class="text-xs opacity-70">
+  <p class="text-xs text-base-content/60">
     Username <%= usernameMinLength %>–<%= usernameMaxLength %> chars ([a-zA-Z0-9_]).
     Password <%= passwordMinLength %>–<%= passwordMaxLength %> chars.
   </p>
 
-  <button type="submit" class="btn btn-primary w-full">Create account</button>
+  <button type="submit" class="btn btn-primary w-full gap-2">
+    <%- include('partials/icon', { name: 'user-plus', size: 'sm' }) %>
+    Create account
+  </button>
 </form>
 
-<p class="text-center text-sm">
+<p class="text-center text-sm text-base-content/70">
   Already have an account?
-  <a href="<%= loginPath %>" class="link link-primary">Sign in</a>
+  <a href="<%= loginPath %>" class="link link-primary inline-flex items-center gap-1">
+    Sign in
+    <%- include('partials/icon', { name: 'sign-in', size: 'sm' }) %>
+  </a>
 </p>
 
 <%- include('partials/auth-shell-end') %>
