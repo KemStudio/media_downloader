@@ -1,7 +1,8 @@
 import { getDb } from '../../database/DataManager.js';
 import {
-  IS_ACTIVE,
   PASSWORD_HASH,
+  STATE,
+  isAccountAccessible,
 } from '../../database/model/Account.js';
 import { findByUsername } from '../../database/modelCRUD/account/FindByUsername.js';
 import { verifyPassword } from '../../database/modelCRUD/account/Password.js';
@@ -21,7 +22,11 @@ export function login(req, res) {
     const db = getDb();
     const account = findByUsername(db, username);
 
-    if (!account || !account[IS_ACTIVE] || !verifyPassword(password, account[PASSWORD_HASH])) {
+    if (
+      !account
+      || !isAccountAccessible(account[STATE])
+      || !verifyPassword(password, account[PASSWORD_HASH])
+    ) {
       res.status(401).json({ error: 'invalid username or password' });
       return;
     }

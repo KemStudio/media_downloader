@@ -1,0 +1,83 @@
+<%- include('partials/app-shell-start') %>
+
+<section
+  id="accounts-page"
+  data-accounts-endpoint="<%= accountsEndpoint %>"
+  data-state-template="<%= accountStateTemplate %>"
+  data-delete-template="<%= accountByIdTemplate %>"
+  data-page-limit="<%= accountsPageLimit %>"
+  data-viewer-role="<%= viewerRole %>"
+  data-can-delete="<%= canDeleteAccounts ? '1' : '0' %>"
+  data-state-active="<%= accountStates.ACTIVE %>"
+  data-state-deactive="<%= accountStates.DEACTIVE %>"
+  data-state-hide="<%= accountStates.HIDE %>"
+>
+  <div class="mb-6">
+    <h1 class="text-2xl font-semibold mb-2">Accounts</h1>
+    <p class="opacity-70 text-sm">Manage account state for root and admin users.</p>
+  </div>
+
+  <fieldset class="mb-6">
+    <legend class="text-sm font-medium mb-2">Filter by state</legend>
+    <div class="flex flex-wrap gap-4">
+      <label class="label cursor-pointer gap-2 justify-start p-0">
+        <input
+          type="checkbox"
+          id="filter-state-active"
+          class="checkbox checkbox-sm"
+          value="<%= accountStates.ACTIVE %>"
+          checked
+        />
+        <span class="label-text">active</span>
+      </label>
+      <label class="label cursor-pointer gap-2 justify-start p-0">
+        <input
+          type="checkbox"
+          id="filter-state-deactive"
+          class="checkbox checkbox-sm"
+          value="<%= accountStates.DEACTIVE %>"
+          checked
+        />
+        <span class="label-text">deactive</span>
+      </label>
+      <label class="label cursor-pointer gap-2 justify-start p-0">
+        <input
+          type="checkbox"
+          id="filter-state-hide"
+          class="checkbox checkbox-sm"
+          value="<%= accountStates.HIDE %>"
+        />
+        <span class="label-text">hide</span>
+      </label>
+    </div>
+  </fieldset>
+
+  <div id="accounts-error" class="alert alert-error text-sm hidden mb-4" role="alert"></div>
+  <p id="accounts-status" class="text-sm opacity-70 mb-4">Loading accounts…</p>
+
+  <div id="accounts-results" class="mb-6">
+    <div id="accounts-table-wrap" class="hidden md:block overflow-x-auto bg-base-100 rounded-box shadow-sm">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Role</th>
+            <th>State</th>
+            <th>Updated</th>
+            <th class="w-56">Action</th>
+          </tr>
+        </thead>
+        <tbody id="accounts-table-body"></tbody>
+      </table>
+    </div>
+    <ul id="accounts-list" class="md:hidden flex flex-col gap-3"></ul>
+  </div>
+
+  <div class="flex items-center justify-between gap-3">
+    <button type="button" id="accounts-prev" class="btn btn-outline btn-sm" disabled>Previous</button>
+    <span id="accounts-page-info" class="text-sm opacity-70"></span>
+    <button type="button" id="accounts-next" class="btn btn-outline btn-sm" disabled>Next</button>
+  </div>
+</section>
+
+<%- include('partials/app-shell-end', { pageScript: '/js/accounts.js' }) %>

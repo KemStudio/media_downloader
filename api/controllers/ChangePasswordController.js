@@ -1,8 +1,9 @@
 import { getDb } from '../../database/DataManager.js';
 import {
   ID,
-  IS_ACTIVE,
   PASSWORD_HASH,
+  STATE,
+  isAccountAccessible,
 } from '../../database/model/Account.js';
 import { findById } from '../../database/modelCRUD/account/FindById.js';
 import { verifyPassword } from '../../database/modelCRUD/account/Password.js';
@@ -32,7 +33,11 @@ export function changePassword(req, res) {
     const accountId = req.session[ACCOUNT_ID_SESSION_KEY];
     const account = findById(db, accountId);
 
-    if (!account || !account[IS_ACTIVE] || !verifyPassword(currentPassword, account[PASSWORD_HASH])) {
+    if (
+      !account
+      || !isAccountAccessible(account[STATE])
+      || !verifyPassword(currentPassword, account[PASSWORD_HASH])
+    ) {
       res.status(401).json({ error: 'invalid current password' });
       return;
     }

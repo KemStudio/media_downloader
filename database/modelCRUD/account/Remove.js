@@ -1,6 +1,9 @@
-import { IS_ACTIVE } from '../../model/Account.js';
-import { update } from './Update.js';
+import { ID, TABLE_NAME } from '../../model/Account.js';
 
 export function remove(db, id) {
-  return update(db, id, { [IS_ACTIVE]: false });
+  const result = db
+    .prepare(`DELETE FROM ${TABLE_NAME} WHERE ${ID} = ?`)
+    .run(id);
+
+  return result.changes > 0;
 }

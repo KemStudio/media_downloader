@@ -1,12 +1,14 @@
 import {
-  IS_ACTIVE,
   PASSWORD_HASH,
   ROLE,
   ROLES,
+  STATE,
+  STATES,
   TABLE_NAME,
   USERNAME,
 } from '../../model/Account.js';
 import { assertRole } from './AssertRole.js';
+import { assertState } from './AssertState.js';
 import { findById } from './FindById.js';
 import { hashPassword } from './Password.js';
 import { assertValidCredentials } from './ValidateCredentials.js';
@@ -15,18 +17,19 @@ export function create(db, {
   [USERNAME]: username,
   password,
   [ROLE]: role = ROLES.USER,
-  [IS_ACTIVE]: isActive = true,
+  [STATE]: state = STATES.ACTIVE,
 }) {
   assertValidCredentials(username, password);
   assertRole(role);
+  assertState(state);
 
   const passwordHash = hashPassword(password);
   const result = db
     .prepare(
-      `INSERT INTO ${TABLE_NAME} (${USERNAME}, ${PASSWORD_HASH}, ${ROLE}, ${IS_ACTIVE})
+      `INSERT INTO ${TABLE_NAME} (${USERNAME}, ${PASSWORD_HASH}, ${ROLE}, ${STATE})
        VALUES (?, ?, ?, ?)`
     )
-    .run(username, passwordHash, role, isActive ? 1 : 0);
+    .run(username, passwordHash, role, state);
 
   return findById(db, result.lastInsertRowid);
 }

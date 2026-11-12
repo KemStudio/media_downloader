@@ -1,5 +1,5 @@
 import { getDb } from '../../database/DataManager.js';
-import { IS_ACTIVE } from '../../database/model/Account.js';
+import { STATE, isAccountAccessible } from '../../database/model/Account.js';
 import { findById } from '../../database/modelCRUD/account/FindById.js';
 import { toPublicAccount } from '../../api/utils/account.js';
 import {
@@ -19,7 +19,7 @@ export function loadAccount(req, res, next) {
   try {
     const account = findById(getDb(), accountId);
 
-    if (!account || !account[IS_ACTIVE]) {
+    if (!account || !isAccountAccessible(account[STATE])) {
       delete req.session[ACCOUNT_ID_SESSION_KEY];
       next();
       return;

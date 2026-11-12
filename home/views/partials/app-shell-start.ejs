@@ -29,3 +29,21 @@
     </div>
   </div>
   <main class="p-6">
+    <div class="max-w-5xl mx-auto grid gap-6 md:grid-cols-[14rem_1fr]">
+      <aside class="md:sticky md:top-6 md:self-start">
+        <nav class="flex flex-col gap-2" aria-label="Home menu">
+          <a
+            href="<%= homePath %>"
+            class="btn btn-ghost justify-start<%= currentPath === homePath ? ' btn-active' : '' %>"
+            <% if (currentPath === homePath) { %>aria-current="page"<% } %>
+          >Home</a>
+          <% if (canManageAccounts) { %>
+          <a
+            href="<%= accountsPath %>"
+            class="btn btn-ghost justify-start<%= currentPath === accountsPath ? ' btn-active' : '' %>"
+            <% if (currentPath === accountsPath) { %>aria-current="page"<% } %>
+          >Danh sách tài khoản</a>
+          <% } %>
+        </nav>
+      </aside>
+      <div class="min-w-0">

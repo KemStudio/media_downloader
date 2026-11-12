@@ -1,13 +1,14 @@
 import {
   ID,
-  IS_ACTIVE,
   PASSWORD_HASH,
   ROLE,
+  STATE,
   TABLE_NAME,
   UPDATED_AT,
   USERNAME,
 } from '../../model/Account.js';
 import { assertRole } from './AssertRole.js';
+import { assertState } from './AssertState.js';
 import { findById } from './FindById.js';
 import { hashPassword } from './Password.js';
 
@@ -39,9 +40,10 @@ export function update(db, id, fields = {}) {
     values.push(fields[ROLE]);
   }
 
-  if (fields[IS_ACTIVE] !== undefined) {
-    updates.push(`${IS_ACTIVE} = ?`);
-    values.push(fields[IS_ACTIVE] ? 1 : 0);
+  if (fields[STATE] !== undefined) {
+    assertState(fields[STATE]);
+    updates.push(`${STATE} = ?`);
+    values.push(fields[STATE]);
   }
 
   if (updates.length === 0) {
