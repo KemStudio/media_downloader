@@ -2,7 +2,10 @@ import { getDb } from '../../database/DataManager.js';
 import { IS_ACTIVE } from '../../database/model/Account.js';
 import { findById } from '../../database/modelCRUD/account/FindById.js';
 import { toPublicAccount } from '../../api/utils/account.js';
-import { ACCOUNT_ID_SESSION_KEY } from '../../api/utils/session.js';
+import {
+  ACCOUNT_ID_SESSION_KEY,
+  touchSessionLastSeen,
+} from '../../api/utils/session.js';
 
 export function loadAccount(req, res, next) {
   res.locals.account = null;
@@ -22,6 +25,7 @@ export function loadAccount(req, res, next) {
       return;
     }
 
+    touchSessionLastSeen(req);
     res.locals.account = toPublicAccount(account);
   } catch (error) {
     next(error);

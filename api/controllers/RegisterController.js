@@ -20,7 +20,10 @@ export function register(req, res) {
       role: ROLES.USER,
     });
 
-    setSessionAccount(req, account);
+    setSessionAccount(req, account, {
+      userAgent: req.get('user-agent'),
+      ip: req.ip,
+    });
     res.status(201).json({ account: toPublicAccount(account) });
   } catch (error) {
     if (isUniqueConstraintError(error)) {

@@ -160,3 +160,4 @@ vite.config.ts.timestamp-*
 .graphifyignore
 AGENTS.md
 .cursor
+graphify-out

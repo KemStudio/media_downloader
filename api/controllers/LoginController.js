@@ -26,7 +26,10 @@ export function login(req, res) {
       return;
     }
 
-    setSessionAccount(req, account);
+    setSessionAccount(req, account, {
+      userAgent: req.get('user-agent'),
+      ip: req.ip,
+    });
     res.status(200).json({ account: toPublicAccount(account) });
   } catch (error) {
     res.status(500).json({ error: error.message });

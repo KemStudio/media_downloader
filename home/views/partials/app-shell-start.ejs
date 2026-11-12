@@ -5,14 +5,26 @@
 </head>
 <body class="min-h-screen bg-base-200">
   <div class="navbar bg-base-100 shadow-sm px-4">
-    <div class="flex-1">
+    <div class="flex-1 gap-2 items-center">
       <a href="<%= homePath %>" class="btn btn-ghost text-xl">Media Downloader</a>
     </div>
-    <div class="flex-none gap-3 items-center">
-      <span class="text-sm opacity-80"><%= account.username %></span>
-      <button type="button" id="logout-button" class="btn btn-outline btn-sm" data-endpoint="<%= logoutEndpoint %>" data-redirect="<%= loginPath %>">
-        Logout
-      </button>
+    <div class="flex-none">
+      <div class="dropdown dropdown-end">
+        <div tabindex="0" role="button" class="btn btn-ghost btn-sm"><%= account.username %></div>
+        <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-10 w-52 p-2 shadow">
+          <li><a href="<%= sessionsPath %>">Sessions</a></li>
+          <li>
+            <button
+              type="button"
+              id="logout-button"
+              data-endpoint="<%= logoutEndpoint %>"
+              data-redirect="<%= loginPath %>"
+            >
+              Logout
+            </button>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
   <main class="p-6">

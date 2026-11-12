@@ -11,6 +11,9 @@ import {
 import loginRoutes from './routes/LoginRoutes.js';
 import logoutRoutes from './routes/LogoutRoutes.js';
 import registerRoutes from './routes/RegisterRoutes.js';
+import sessionsRoutes from './routes/SessionsRoutes.js';
+import sessionsLogoutOthersRoutes from './routes/SessionsLogoutOthersRoutes.js';
+import sessionsLogoutRoutes from './routes/SessionsLogoutRoutes.js';
 
 export function init(app) {
   const secret = process.env.SESSION_SECRET;
@@ -37,6 +40,9 @@ export function init(app) {
   app.use(registerRoutes);
   app.use(loginRoutes);
   app.use(logoutRoutes);
+  app.use(sessionsRoutes);
+  app.use(sessionsLogoutOthersRoutes);
+  app.use(sessionsLogoutRoutes);
 }
 
 export default {
