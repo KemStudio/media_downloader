@@ -58,6 +58,14 @@
             <%- include('icon', { name: 'house', size: 'sm' }) %>
             Home
           </a>
+          <a
+            href="<%= downloadsPath %>"
+            class="md-nav-link<%= currentPath === downloadsPath ? ' btn-active' : '' %>"
+            <% if (currentPath === downloadsPath) { %>aria-current="page"<% } %>
+          >
+            <%- include('icon', { name: 'download', size: 'sm' }) %>
+            Downloads
+          </a>
           <% if (canManageAccounts) { %>
           <a
             href="<%= accountsPath %>"
@@ -66,6 +74,16 @@
           >
             <%- include('icon', { name: 'users', size: 'sm' }) %>
             Accounts
+          </a>
+          <% } %>
+          <% if (canManageCronJobs) { %>
+          <a
+            href="<%= cronJobsPath %>"
+            class="md-nav-link<%= currentPath === cronJobsPath ? ' btn-active' : '' %>"
+            <% if (currentPath === cronJobsPath) { %>aria-current="page"<% } %>
+          >
+            <%- include('icon', { name: 'clock', size: 'sm' }) %>
+            Cron jobs
           </a>
           <% } %>
           <a

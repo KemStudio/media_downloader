@@ -5,6 +5,8 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import ApiManager from './api/ApiManager.js';
+import CronManager from './api_cron_job/CronManager.js';
+import DownloaderManager from './api_downloader/DownloaderManager.js';
 import DataManager from './database/DataManager.js';
 import HomeManager from './home/HomeManager.js';
 
@@ -36,6 +38,10 @@ app.use(
 );
 
 ApiManager.init(app);
+DownloaderManager.init(app);
+CronManager.dbInit();
+CronManager.appRoute(app);
+CronManager.startScheduler();
 HomeManager.init(app);
 
 app.listen(PORT, () => {

@@ -1,0 +1,99 @@
+<%- include('partials/app-shell-start') %>
+
+<section
+  id="cron-jobs-page"
+  data-list-endpoint="<%= cronListEndpoint %>"
+  data-last-run-endpoint="<%= cronLastRunEndpoint %>"
+  data-enabled-endpoint="<%= cronEnabledEndpoint %>"
+  data-interval-endpoint="<%= cronIntervalEndpoint %>"
+  data-cron-endpoint="<%= cronCronEndpoint %>"
+  data-interval-min-seconds="<%= cronIntervalMinSeconds %>"
+>
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-5">
+    <header class="md-page-header mb-0">
+      <h1 class="md-page-title">Cron jobs</h1>
+      <p class="md-page-desc">Enable, schedule, and inspect local background jobs.</p>
+    </header>
+    <button type="button" id="cron-jobs-reload" class="btn btn-outline btn-sm shrink-0">
+      Reload
+    </button>
+  </div>
+
+  <div id="cron-jobs-error" class="alert alert-error text-sm hidden mb-4" role="alert"></div>
+  <div id="cron-jobs-info" class="alert alert-info text-sm hidden mb-4" role="status"></div>
+  <p id="cron-jobs-status" class="text-sm text-base-content/65 mb-4">Loading cron jobs…</p>
+
+  <div id="cron-jobs-results" class="mb-5">
+    <div id="cron-jobs-table-wrap" class="hidden md:block overflow-x-auto md-surface">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Schedule</th>
+            <th>Status</th>
+            <th class="w-72">Action</th>
+          </tr>
+        </thead>
+        <tbody id="cron-jobs-table-body"></tbody>
+      </table>
+    </div>
+    <ul id="cron-jobs-list" class="md:hidden flex flex-col gap-3"></ul>
+  </div>
+
+  <dialog id="cron-job-edit-dialog" class="md-dialog">
+    <div class="md-dialog-panel">
+      <header>
+        <h2 id="cron-job-edit-title" class="text-lg font-semibold tracking-tight">Edit schedule</h2>
+      </header>
+      <div id="cron-job-edit-error" class="alert alert-error text-sm hidden" role="alert"></div>
+      <div id="cron-job-edit-interval-fields" class="flex flex-col gap-2">
+        <label class="form-control w-full">
+          <span class="label-text mb-1">Interval (seconds)</span>
+          <input
+            id="cron-job-edit-interval"
+            type="number"
+            min="<%= cronIntervalMinSeconds %>"
+            step="1"
+            class="input input-bordered input-sm w-full"
+          />
+        </label>
+      </div>
+      <p id="cron-job-edit-cron-text" class="text-sm text-base-content/65 hidden"></p>
+      <div class="flex flex-wrap justify-end gap-2">
+        <button type="button" id="cron-job-edit-cancel" class="btn btn-ghost btn-sm">Cancel</button>
+        <button type="button" id="cron-job-edit-save" class="btn btn-primary btn-sm">Save</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="cron-job-log-dialog" class="md-dialog">
+    <div class="md-dialog-panel">
+      <header>
+        <h2 id="cron-job-log-title" class="text-lg font-semibold tracking-tight">Last run</h2>
+      </header>
+      <dl class="grid gap-3 text-sm">
+        <div>
+          <dt class="text-base-content/65">last_run_at</dt>
+          <dd id="cron-job-log-run-at">—</dd>
+        </div>
+        <div>
+          <dt class="text-base-content/65">last_status</dt>
+          <dd id="cron-job-log-status">—</dd>
+        </div>
+        <div>
+          <dt class="text-base-content/65">last_error</dt>
+          <dd id="cron-job-log-error">—</dd>
+        </div>
+        <div>
+          <dt class="text-base-content/65">last_duration_ms</dt>
+          <dd id="cron-job-log-duration">—</dd>
+        </div>
+      </dl>
+      <div class="flex flex-wrap justify-end gap-2">
+        <button type="button" id="cron-job-log-close" class="btn btn-primary btn-sm">Close</button>
+      </div>
+    </div>
+  </dialog>
+</section>
+
+<%- include('partials/app-shell-end', { pageScript: '/js/cron-jobs.js' }) %>

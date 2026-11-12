@@ -1,0 +1,100 @@
+<%- include('partials/app-shell-start') %>
+
+<section
+  id="downloads-page"
+  data-media-endpoint="<%= mediaEndpoint %>"
+  data-media-download-endpoint="<%= mediaDownloadEndpoint %>"
+  data-page-limit="<%= mediaPageLimit %>"
+  data-status-pending="<%= downloadStatuses.PENDING %>"
+  data-status-downloading="<%= downloadStatuses.DOWNLOADING %>"
+  data-status-completed="<%= downloadStatuses.COMPLETED %>"
+  data-status-failed="<%= downloadStatuses.FAILED %>"
+>
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-5">
+    <header class="md-page-header mb-0">
+      <h1 class="md-page-title">Downloads</h1>
+      <p class="md-page-desc">Track media downloads for your account.</p>
+    </header>
+    <button type="button" id="downloads-reload" class="btn btn-outline btn-sm shrink-0">
+      Reload
+    </button>
+  </div>
+
+  <fieldset class="mb-5">
+    <legend class="text-sm font-medium mb-2">Filter by status</legend>
+    <div class="flex flex-wrap gap-4">
+      <label class="label cursor-pointer gap-2 justify-start p-0">
+        <input
+          type="checkbox"
+          id="filter-status-pending"
+          class="checkbox checkbox-sm"
+          value="<%= downloadStatuses.PENDING %>"
+          checked
+        />
+        <span class="label-text">Pending</span>
+      </label>
+      <label class="label cursor-pointer gap-2 justify-start p-0">
+        <input
+          type="checkbox"
+          id="filter-status-downloading"
+          class="checkbox checkbox-sm"
+          value="<%= downloadStatuses.DOWNLOADING %>"
+          checked
+        />
+        <span class="label-text">Downloading</span>
+      </label>
+      <label class="label cursor-pointer gap-2 justify-start p-0">
+        <input
+          type="checkbox"
+          id="filter-status-completed"
+          class="checkbox checkbox-sm"
+          value="<%= downloadStatuses.COMPLETED %>"
+          checked
+        />
+        <span class="label-text">Completed</span>
+      </label>
+      <label class="label cursor-pointer gap-2 justify-start p-0">
+        <input
+          type="checkbox"
+          id="filter-status-failed"
+          class="checkbox checkbox-sm"
+          value="<%= downloadStatuses.FAILED %>"
+          checked
+        />
+        <span class="label-text">Failed</span>
+      </label>
+    </div>
+  </fieldset>
+
+  <div id="downloads-error" class="alert alert-error text-sm hidden mb-4" role="alert"></div>
+  <p id="downloads-status" class="text-sm text-base-content/65 mb-4">Loading downloads…</p>
+
+  <div id="downloads-results" class="mb-5">
+    <div id="downloads-table-wrap" class="hidden md:block overflow-x-auto md-surface">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>URL</th>
+            <th>Status</th>
+            <th>File</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="downloads-table-body"></tbody>
+      </table>
+    </div>
+    <ul id="downloads-list" class="md:hidden flex flex-col gap-3"></ul>
+  </div>
+
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <p id="downloads-page-info" class="text-sm text-base-content/65"></p>
+    <div class="flex gap-2">
+      <button type="button" id="downloads-prev" class="btn btn-outline btn-sm" disabled>Previous</button>
+      <button type="button" id="downloads-next" class="btn btn-outline btn-sm" disabled>Next</button>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/app-shell-end', { pageScript: '/js/downloads.js' }) %>

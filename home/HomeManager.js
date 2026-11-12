@@ -3,6 +3,8 @@ import { loadAccount } from './middleware/loadAccount.js';
 import accessTokensRoutes from './routes/AccessTokensRoutes.js';
 import accountsRoutes from './routes/AccountsRoutes.js';
 import changePasswordRoutes from './routes/ChangePasswordRoutes.js';
+import cronJobsRoutes from './routes/CronJobsRoutes.js';
+import downloadsRoutes from './routes/DownloadsRoutes.js';
 import homeRoutes from './routes/HomeRoutes.js';
 import loginRoutes from './routes/LoginRoutes.js';
 import registerRoutes from './routes/RegisterRoutes.js';
@@ -15,7 +17,9 @@ export function init(app) {
   app.use(registerRoutes);
   app.use(sessionsRoutes);
   app.use(accessTokensRoutes);
+  app.use(downloadsRoutes);
   app.use(accountsRoutes);
+  app.use(cronJobsRoutes);
   app.use(changePasswordRoutes);
   app.use(homeRoutes);
 }

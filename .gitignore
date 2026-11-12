@@ -70,9 +70,14 @@ web_modules/
 .env.*
 !.env.example
 
-# Cron local SQLite
+# Cron SQLite
+api_cron_job/data/*.sqlite*
 api_cron_job_local/data/*.sqlite
 api_cron_job_local/data/*.sqlite-*
+
+# Downloader media files
+api_downloader/media/**
+!api_downloader/media/.gitkeep
 
 # App SQLite database
 database/data/*.db
@@ -161,3 +166,4 @@ vite.config.ts.timestamp-*
 AGENTS.md
 .cursor
 graphify-out
+api_downloader/media
