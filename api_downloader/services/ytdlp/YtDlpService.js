@@ -6,7 +6,7 @@ import {
   findDownloadedFile,
   outputTemplateFor,
   sanitizeOriginalFileName,
-} from '../utils/diskFileName.js';
+} from '../../utils/diskFileName.js';
 
 function resolveYtDlpPath() {
   const fromEnv = process.env.YT_DLP_PATH;
@@ -40,7 +40,7 @@ function resolveCookiesFile() {
   return cookiesPath;
 }
 
-function buildArgs({ url, outputDir, outputStem, cookiesFile }) {
+function buildArgs({ url, outputDir, outputStem, cookiesFile, extraArgs }) {
   const args = [
     '--no-playlist',
     '--no-progress',
@@ -61,6 +61,10 @@ function buildArgs({ url, outputDir, outputStem, cookiesFile }) {
 
   if (cookiesFile) {
     args.push('--cookies', cookiesFile);
+  }
+
+  if (Array.isArray(extraArgs) && extraArgs.length > 0) {
+    args.push(...extraArgs);
   }
 
   args.push(url);
@@ -140,7 +144,7 @@ function parsePrintLines(stdout) {
   };
 }
 
-export async function download({ url, outputDir, outputStem }) {
+export async function download({ url, outputDir, outputStem, extraArgs } = {}) {
   if (typeof url !== 'string' || !url.trim()) {
     throw new Error('url is required');
   }
@@ -161,6 +165,7 @@ export async function download({ url, outputDir, outputStem }) {
     outputDir,
     outputStem: outputStem.trim(),
     cookiesFile,
+    extraArgs,
   });
 
   const { stdout } = await runYtDlp(ytDlpPath, args, timeoutMs);

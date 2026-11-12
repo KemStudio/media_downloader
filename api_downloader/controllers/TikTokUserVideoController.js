@@ -1,14 +1,15 @@
-import { kickMediaDownload } from '../../../../api_cron_job/kickMediaDownload.js';
-import { getDb } from '../../../../database/DataManager.js';
+import { kickMediaDownload } from '../../api_cron_job/kickMediaDownload.js';
+import { getDb } from '../../database/DataManager.js';
 import {
   ACCOUNT_ID,
+  ORIGINAL_FILE_NAME,
   SITE,
   SOURCE,
   URL,
-} from '../../../../database/model/DownloadMedia.js';
-import { create } from '../../../../database/modelCRUD/downloadMedia/Create.js';
-import localSetting from '../../../Setting.js';
-import { validateTikTokComUrl } from './validateUrl.js';
+} from '../../database/model/DownloadMedia.js';
+import { create } from '../../database/modelCRUD/downloadMedia/Create.js';
+import localSetting from '../Setting.js';
+import { validateTikTokUserVideoUrl } from '../utils/tikTokUserVideoUrl.js';
 
 export function enqueue(req, res) {
   const accountId = Number(req.accountId);
@@ -17,7 +18,7 @@ export function enqueue(req, res) {
     return;
   }
 
-  const validated = validateTikTokComUrl(req.body?.url);
+  const validated = validateTikTokUserVideoUrl(req.body?.url);
   if (!validated.ok) {
     res.status(400).json({ error: validated.error });
     return;
@@ -29,10 +30,11 @@ export function enqueue(req, res) {
       [SOURCE]: localSetting.SOURCE_TIKTOK,
       [SITE]: localSetting.SITE_TIKTOK_COM,
       [URL]: validated.url,
+      [ORIGINAL_FILE_NAME]: validated.originalFileName,
     });
 
     kickMediaDownload().catch((error) => {
-      console.error(`tiktok enqueue kick failed: ${error}`);
+      console.error(`tiktok user_video enqueue kick failed: ${error}`);
     });
 
     res.status(200).json({ success: true });

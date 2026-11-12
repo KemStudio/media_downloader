@@ -13,11 +13,12 @@ import {
 } from '../../database/model/DownloadMedia.js';
 import { claimNextPending } from '../../database/modelCRUD/downloadMedia/ClaimNextPending.js';
 import { update } from '../../database/modelCRUD/downloadMedia/Update.js';
-import { download as ytDlpDownload } from '../../api_downloader/shared/services/YtDlpService.js';
+import { getDownloader } from '../../api_downloader/downloaders/index.js';
+import { download as ytDlpDownload } from '../../api_downloader/services/ytdlp/YtDlpService.js';
 import {
   ensureMediaDir,
   removeStemArtifacts,
-} from '../../api_downloader/shared/utils/diskFileName.js';
+} from '../../api_downloader/utils/diskFileName.js';
 import downloaderSetting from '../../api_downloader/Setting.js';
 import localSetting from '../Setting.js';
 
@@ -46,6 +47,7 @@ async function processOne(db, row) {
   const source = row[SOURCE];
   const site = row[SITE];
   const url = row[URL];
+  const downloader = getDownloader(source, site);
 
   const outputDir = await ensureMediaDir(source, site);
 
@@ -54,12 +56,18 @@ async function processOne(db, row) {
       url,
       outputDir,
       outputStem: stem,
+      extraArgs: downloader.extraArgs,
+    });
+
+    const originalFileName = downloader.resolveOriginalFileName(row, {
+      diskFileName: result.diskFileName,
+      originalFileName: result.originalFileName,
     });
 
     const updated = update(db, id, {
       [STATUS]: STATUSES.COMPLETED,
       [DISK_FILE_NAME]: result.diskFileName,
-      [ORIGINAL_FILE_NAME]: result.originalFileName,
+      [ORIGINAL_FILE_NAME]: originalFileName,
       [ERROR_MESSAGE]: null,
       [FINISHED_AT]: nowSqliteUtc(),
     });

@@ -1,7 +1,7 @@
-import tiktokRoutes from './sources/tiktok/index.js';
+import tikTokUserVideoRoutes from './routes/TikTokUserVideoRoutes.js';
 
 export function init(app) {
-  app.use(tiktokRoutes);
+  app.use(tikTokUserVideoRoutes);
 }
 
 export default {

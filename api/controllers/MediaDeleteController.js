@@ -2,7 +2,7 @@ import path from 'node:path';
 import {
   mediaDirFor,
   removeStemArtifacts,
-} from '../../api_downloader/shared/utils/diskFileName.js';
+} from '../../api_downloader/utils/diskFileName.js';
 import { getDb } from '../../database/DataManager.js';
 import {
   ACCOUNT_ID,

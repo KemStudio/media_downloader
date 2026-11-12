@@ -1,5 +1,5 @@
-export const TIKTOK_TIKTOK_COM = '/api_downloader/tiktok/tiktok.com';
+export const TIKTOK_USER_VIDEO = '/api_downloader/tiktok/user_video';
 
 export default {
-  TIKTOK_TIKTOK_COM,
+  TIKTOK_USER_VIDEO,
 };
