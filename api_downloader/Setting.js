@@ -7,6 +7,8 @@ const ERROR_MESSAGE_MAX_LENGTH = 2000;
 
 const SOURCE_TIKTOK = 'tiktok';
 const SITE_TIKTOK_COM = 'tiktok.com';
+const SOURCE_YOUTUBE = 'youtube';
+const SITE_YOUTUBE_COM = 'youtube.com';
 
 export {
   YT_DLP_PATH,
@@ -17,6 +19,8 @@ export {
   ERROR_MESSAGE_MAX_LENGTH,
   SOURCE_TIKTOK,
   SITE_TIKTOK_COM,
+  SOURCE_YOUTUBE,
+  SITE_YOUTUBE_COM,
 };
 
 export default {
@@ -28,4 +32,6 @@ export default {
   ERROR_MESSAGE_MAX_LENGTH,
   SOURCE_TIKTOK,
   SITE_TIKTOK_COM,
+  SOURCE_YOUTUBE,
+  SITE_YOUTUBE_COM,
 };

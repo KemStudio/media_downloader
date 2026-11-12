@@ -1,5 +1,6 @@
 import tiktokUserPhoto from './tiktokUserPhoto.js';
 import tiktokUserVideo from './tiktokUserVideo.js';
+import youtubeVideo from './youtubeVideo.js';
 
 const DEFAULT_DOWNLOADER = {
   resolveOriginalFileName(_row, { originalFileName }) {
@@ -9,6 +10,7 @@ const DEFAULT_DOWNLOADER = {
 
 const registry = new Map([
   [registryKey(tiktokUserVideo.source, tiktokUserVideo.site), tiktokUserVideo],
+  [registryKey(youtubeVideo.source, youtubeVideo.site), youtubeVideo],
 ]);
 
 function registryKey(source, site) {
