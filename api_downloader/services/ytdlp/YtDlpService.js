@@ -4,6 +4,7 @@ import path from 'node:path';
 import localSetting from '../../Setting.js';
 import {
   findDownloadedFile,
+  findDownloadedFiles,
   outputTemplateFor,
   sanitizeOriginalFileName,
 } from '../../utils/diskFileName.js';
@@ -138,9 +139,25 @@ function parsePrintLines(stdout) {
     .map((line) => line.trim())
     .filter(Boolean);
 
+  const files = [];
+  for (let index = 0; index + 1 < lines.length; index += 2) {
+    files.push({
+      filePath: lines[index] || null,
+      originalName: lines[index + 1] || null,
+    });
+  }
+
+  if (!files.length && lines[0]) {
+    files.push({
+      filePath: lines[0],
+      originalName: lines[1] || null,
+    });
+  }
+
   return {
-    filePath: lines[0] || null,
-    originalName: lines[1] || null,
+    filePath: files[0]?.filePath || null,
+    originalName: files[0]?.originalName || null,
+    files,
   };
 }
 
@@ -203,33 +220,57 @@ export async function download({ url, outputDir, outputStem, extraArgs } = {}) {
 
   const { stdout } = await runYtDlp(ytDlpPath, args, timeoutMs);
   const printed = parsePrintLines(stdout);
+  const stem = outputStem.trim();
 
-  let filePath = printed.filePath;
-  let diskFileName = filePath ? path.basename(filePath) : null;
+  const printedFiles = [];
+  for (const entry of printed.files) {
+    if (!entry.filePath || !fs.existsSync(entry.filePath)) {
+      continue;
+    }
+    const stats = await fs.promises.stat(entry.filePath);
+    if (!stats.isFile() || stats.size < 1) {
+      continue;
+    }
+    const diskFileName = path.basename(entry.filePath);
+    printedFiles.push({
+      filePath: entry.filePath,
+      diskFileName,
+      originalFileName: sanitizeOriginalFileName(entry.originalName || diskFileName),
+      size: stats.size,
+    });
+  }
 
-  if (!filePath || !fs.existsSync(filePath)) {
-    const found = await findDownloadedFile(outputDir, outputStem.trim());
+  let files = printedFiles;
+  if (!files.length) {
+    const found = await findDownloadedFiles(outputDir, stem);
+    files = found.map((entry) => ({
+      filePath: entry.filePath,
+      diskFileName: entry.name,
+      originalFileName: sanitizeOriginalFileName(entry.name),
+      size: entry.size,
+    }));
+  }
+
+  if (!files.length) {
+    const found = await findDownloadedFile(outputDir, stem);
     if (!found) {
       throw new Error('yt-dlp did not produce an output file');
     }
-    filePath = found.filePath;
-    diskFileName = found.name;
+    files = [{
+      filePath: found.filePath,
+      diskFileName: found.name,
+      originalFileName: sanitizeOriginalFileName(found.name),
+      size: found.size,
+    }];
   }
 
-  const stats = await fs.promises.stat(filePath);
-  if (!stats.isFile() || stats.size < 1) {
-    throw new Error('yt-dlp produced an empty output file');
-  }
-
-  const originalFileName = sanitizeOriginalFileName(
-    printed.originalName || diskFileName,
-  );
-
+  const primary = files[0];
   return {
-    filePath,
-    diskFileName,
-    originalFileName,
-    size: stats.size,
+    filePath: primary.filePath,
+    diskFileName: primary.diskFileName,
+    originalFileName: primary.originalFileName,
+    size: primary.size,
+    files,
   };
 }
 

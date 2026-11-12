@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Readable } from 'node:stream';
@@ -13,6 +14,8 @@ const HTTPONLY_PREFIX = '#HttpOnly_';
 const MAX_REDIRECTS = 5;
 const EXT_PATTERN = /^[a-z0-9]{1,8}$/;
 const COOKIE_NAME_PATTERN = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
+const PHOTO_PATH = /^\/@([^/]+)\/photo\/(\d+)\/?$/;
+const CHALLENGE_MAX_NONCE = 1_000_000;
 
 function timeoutMs(value, fallback) {
   const parsed = Number(value);
@@ -324,8 +327,103 @@ async function fetchAllowed(initialUrl, {
   throw new Error(`${failureLabel} redirected too many times`);
 }
 
-export async function fetchTikTokPhotoHtml(pageUrl) {
-  const cookies = await loadCookies();
+export function detailPageUrlForPhoto(pageUrl) {
+  let parsed;
+  try {
+    parsed = new URL(String(pageUrl || '').trim());
+  } catch {
+    throw new Error('photo page url is invalid');
+  }
+
+  const match = PHOTO_PATH.exec(parsed.pathname);
+  if (match) {
+    parsed.pathname = `/@${match[1]}/video/${match[2]}`;
+  }
+  parsed.hash = '';
+  return parsed.toString();
+}
+
+function elementClassById(html, id) {
+  const tagPattern = new RegExp(`<[a-z]+\\b[^>]*\\bid=["']${id}["'][^>]*>`, 'i');
+  const tagMatch = tagPattern.exec(String(html || ''));
+  if (!tagMatch) {
+    return null;
+  }
+
+  const classMatch = /\bclass=["']([^"']*)["']/i.exec(tagMatch[0]);
+  return classMatch ? classMatch[1] : null;
+}
+
+function isWafChallengePage(html) {
+  return Boolean(elementClassById(html, 'cs') && elementClassById(html, 'wci'));
+}
+
+function decodeChallengePayload(encoded) {
+  const padded = `${String(encoded || '')}===`;
+  try {
+    return JSON.parse(Buffer.from(padded, 'base64').toString('utf8'));
+  } catch {
+    throw new Error('Unable to extract challenge data');
+  }
+}
+
+function solveWafChallenge(html) {
+  const encoded = elementClassById(html, 'cs');
+  const cookieName = elementClassById(html, 'wci');
+  if (!encoded || !cookieName) {
+    throw new Error('Unable to extract challenge data');
+  }
+
+  const challengeData = decodeChallengePayload(encoded);
+  const expectedDigest = Buffer.from(String(challengeData?.v?.c || ''), 'base64');
+  const baseInput = Buffer.from(String(challengeData?.v?.a || ''), 'base64');
+  if (!expectedDigest.length || !baseInput.length) {
+    throw new Error('Unable to extract challenge data');
+  }
+
+  let solved = false;
+  for (let nonce = 0; nonce <= CHALLENGE_MAX_NONCE; nonce += 1) {
+    const digest = createHash('sha256')
+      .update(baseInput)
+      .update(String(nonce))
+      .digest();
+    if (digest.equals(expectedDigest)) {
+      challengeData.d = Buffer.from(String(nonce), 'utf8').toString('base64');
+      solved = true;
+      break;
+    }
+  }
+
+  if (!solved) {
+    throw new Error('Unable to solve JS challenge');
+  }
+
+  const cookies = [{
+    domain: '.tiktok.com',
+    path: '/',
+    secure: true,
+    expires: 0,
+    name: cookieName,
+    value: Buffer.from(JSON.stringify(challengeData), 'utf8').toString('base64'),
+  }];
+
+  const rciName = elementClassById(html, 'rci');
+  const rciValue = elementClassById(html, 'rs');
+  if (rciName && rciValue) {
+    cookies.push({
+      domain: '.tiktok.com',
+      path: '/',
+      secure: true,
+      expires: 0,
+      name: rciName,
+      value: rciValue,
+    });
+  }
+
+  return cookies;
+}
+
+async function fetchPhotoPageHtmlOnce(pageUrl, cookies) {
   const response = await fetchAllowed(pageUrl, {
     timeoutMs: pageTimeoutMs(),
     allowHost: isPageHost,
@@ -343,6 +441,23 @@ export async function fetchTikTokPhotoHtml(pageUrl) {
   });
 
   return response.text();
+}
+
+export async function fetchTikTokPhotoHtml(pageUrl) {
+  const detailUrl = detailPageUrlForPhoto(pageUrl);
+  const cookies = await loadCookies();
+  let html = await fetchPhotoPageHtmlOnce(detailUrl, cookies);
+
+  if (isWafChallengePage(html)) {
+    const challengeCookies = solveWafChallenge(html);
+    html = await fetchPhotoPageHtmlOnce(detailUrl, [...cookies, ...challengeCookies]);
+  }
+
+  if (isWafChallengePage(html)) {
+    throw new Error('photo page challenge retry failed');
+  }
+
+  return html;
 }
 
 async function removeFileIfPresent(filePath) {
@@ -418,6 +533,7 @@ export default {
   parseTikTokUserPhotoImages,
   parseNetscapeCookies,
   cookieHeaderForUrl,
+  detailPageUrlForPhoto,
   fetchTikTokPhotoHtml,
   downloadCdnImage,
   diskFileNameForPhoto,

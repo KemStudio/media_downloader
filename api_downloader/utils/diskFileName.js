@@ -28,29 +28,38 @@ export async function ensureMediaDir(source, site) {
   return dir;
 }
 
-export async function findDownloadedFile(dir, stem) {
+function isStemArtifactName(name, stem) {
+  return name === stem
+    || name.startsWith(`${stem}.`)
+    || name.startsWith(`${stem}_`);
+}
+
+export async function findDownloadedFiles(dir, stem) {
   const entries = await fs.promises.readdir(dir);
   const matches = [];
 
   for (const name of entries) {
-    if (name === stem || name.startsWith(`${stem}.`)) {
-      if (name.endsWith('.part')) {
-        continue;
-      }
-      const filePath = path.join(dir, name);
-      const stats = await fs.promises.stat(filePath);
-      if (stats.isFile()) {
-        matches.push({ name, filePath, size: stats.size });
-      }
+    if (!isStemArtifactName(name, stem) || name.endsWith('.part')) {
+      continue;
+    }
+    const filePath = path.join(dir, name);
+    const stats = await fs.promises.stat(filePath);
+    if (stats.isFile() && stats.size > 0) {
+      matches.push({ name, filePath, size: stats.size });
     }
   }
 
+  matches.sort((left, right) => left.name.localeCompare(right.name, 'en'));
+  return matches;
+}
+
+export async function findDownloadedFile(dir, stem) {
+  const matches = await findDownloadedFiles(dir, stem);
   if (!matches.length) {
     return null;
   }
 
-  matches.sort((left, right) => right.size - left.size);
-  return matches[0];
+  return [...matches].sort((left, right) => right.size - left.size)[0];
 }
 
 export async function removeStemArtifacts(dir, stem) {
@@ -90,5 +99,6 @@ export default {
   sanitizeOriginalFileName,
   ensureMediaDir,
   findDownloadedFile,
+  findDownloadedFiles,
   removeStemArtifacts,
 };

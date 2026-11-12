@@ -3,7 +3,6 @@ import { getDb } from '../../database/DataManager.js';
 import {
   DISK_FILE_NAME,
   DOWNLOAD_MEDIA_ID,
-  ID as FILE_ID,
   ORIGINAL_FILE_NAME,
 } from '../../database/model/DownloadFile.js';
 import {
@@ -18,7 +17,6 @@ import {
 } from '../../database/model/DownloadMedia.js';
 import { create as createDownloadFile } from '../../database/modelCRUD/downloadFile/Create.js';
 import { removeByMediaId } from '../../database/modelCRUD/downloadFile/RemoveByMediaId.js';
-import { update as updateDownloadFile } from '../../database/modelCRUD/downloadFile/Update.js';
 import { claimNextPending } from '../../database/modelCRUD/downloadMedia/ClaimNextPending.js';
 import { update } from '../../database/modelCRUD/downloadMedia/Update.js';
 import { getDownloader } from '../../api_downloader/downloaders/index.js';
@@ -28,6 +26,7 @@ import {
 } from '../../api_downloader/services/ytdlp/YtDlpService.js';
 import {
   ensureMediaDir,
+  findDownloadedFiles,
   removeStemArtifacts,
 } from '../../api_downloader/utils/diskFileName.js';
 import downloaderSetting from '../../api_downloader/Setting.js';
@@ -75,11 +74,6 @@ async function discardDownloadFiles(db, mediaId, outputDir, stem) {
 async function downloadWithYtDlp(db, row, downloader, outputDir, stem) {
   const id = row[ID];
   const url = row[URL];
-  const fileRow = createDownloadFile(db, {
-    [DOWNLOAD_MEDIA_ID]: id,
-    [DISK_FILE_NAME]: stem,
-    [ORIGINAL_FILE_NAME]: null,
-  });
 
   if (typeof downloader.assertTargetMatches === 'function') {
     const info = await ytDlpProbe({ url, extraArgs: downloader.extraArgs });
@@ -93,19 +87,58 @@ async function downloadWithYtDlp(db, row, downloader, outputDir, stem) {
     extraArgs: downloader.extraArgs,
   });
 
-  const originalFileName = downloader.resolveOriginalFileName(row, {
-    diskFileName: result.diskFileName,
-    originalFileName: result.originalFileName,
-  });
+  const discovered = await findDownloadedFiles(outputDir, stem);
+  const resultFiles = Array.isArray(result.files) && result.files.length > 0
+    ? result.files
+    : [{
+      diskFileName: result.diskFileName,
+      originalFileName: result.originalFileName,
+    }];
 
-  const savedFile = updateDownloadFile(db, fileRow[FILE_ID], {
-    [DISK_FILE_NAME]: result.diskFileName,
-    [ORIGINAL_FILE_NAME]: originalFileName,
-  });
+  const filesByName = new Map(
+    resultFiles
+      .filter((entry) => entry?.diskFileName)
+      .map((entry) => [entry.diskFileName, entry]),
+  );
 
-  if (!savedFile) {
+  const files = discovered.length > 0
+    ? discovered.map((entry) => {
+      const printed = filesByName.get(entry.name);
+      return {
+        diskFileName: entry.name,
+        originalFileName: printed?.originalFileName || entry.name,
+      };
+    })
+    : resultFiles.map((entry) => ({
+      diskFileName: entry.diskFileName,
+      originalFileName: entry.originalFileName,
+    }));
+
+  if (!files.length) {
     await discardDownloadFiles(db, id, outputDir, stem);
     return false;
+  }
+
+  for (let offset = 0; offset < files.length; offset += 1) {
+    const file = files[offset];
+    const index = offset + 1;
+    const originalFileName = downloader.resolveOriginalFileName(row, {
+      diskFileName: file.diskFileName,
+      originalFileName: file.originalFileName,
+      index,
+      fileCount: files.length,
+    });
+
+    const savedFile = createDownloadFile(db, {
+      [DOWNLOAD_MEDIA_ID]: id,
+      [DISK_FILE_NAME]: file.diskFileName,
+      [ORIGINAL_FILE_NAME]: originalFileName,
+    });
+
+    if (!savedFile) {
+      await discardDownloadFiles(db, id, outputDir, stem);
+      return false;
+    }
   }
 
   return true;
