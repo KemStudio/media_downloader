@@ -1,0 +1,36 @@
+{
+  "name": "media_downloader",
+  "version": "1.0.0",
+  "description": "Media Downloader",
+  "homepage": "https://github.com/KemStudio/media_downloader#readme",
+  "bugs": {
+    "url": "https://github.com/KemStudio/media_downloader/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KemStudio/media_downloader.git"
+  },
+  "license": "ISC",
+  "author": "hungdev",
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies":{
+    "dotenv": "^18.0.1",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0"
+  },
+  "engines": {
+      "node": ">=22.5.0"
+  },
+  "devDependencies": {
+      "@tailwindcss/cli": "^4.3.3",
+      "daisyui": "^5.7.50",
+      "tailwindcss": "^4.3.3"
+  }
+}
