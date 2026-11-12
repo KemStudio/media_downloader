@@ -96,6 +96,14 @@
     @apply bg-primary/10 text-primary;
   }
 
+  .md-nav-group-toggle {
+    @apply w-full list-none;
+  }
+
+  .md-nav-group-toggle::-webkit-details-marker {
+    display: none;
+  }
+
   .md-icon {
     @apply inline-block shrink-0;
   }

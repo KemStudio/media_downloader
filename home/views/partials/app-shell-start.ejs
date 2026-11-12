@@ -51,48 +51,12 @@
       <aside class="md:sticky md:top-6 md:self-start">
         <nav class="flex flex-col gap-1" aria-label="Main">
           <a
-            href="<%= homePath %>"
-            class="md-nav-link<%= currentPath === homePath ? ' btn-active' : '' %>"
-            <% if (currentPath === homePath) { %>aria-current="page"<% } %>
-          >
-            <%- include('icon', { name: 'house', size: 'sm' }) %>
-            Home
-          </a>
-          <a
             href="<%= downloadsPath %>"
             class="md-nav-link<%= currentPath === downloadsPath ? ' btn-active' : '' %>"
             <% if (currentPath === downloadsPath) { %>aria-current="page"<% } %>
           >
             <%- include('icon', { name: 'download', size: 'sm' }) %>
             Media
-          </a>
-          <% if (canManageAccounts) { %>
-          <a
-            href="<%= accountsPath %>"
-            class="md-nav-link<%= currentPath === accountsPath ? ' btn-active' : '' %>"
-            <% if (currentPath === accountsPath) { %>aria-current="page"<% } %>
-          >
-            <%- include('icon', { name: 'users', size: 'sm' }) %>
-            Accounts
-          </a>
-          <% } %>
-          <% if (canManageCronJobs) { %>
-          <a
-            href="<%= cronJobsPath %>"
-            class="md-nav-link<%= currentPath === cronJobsPath ? ' btn-active' : '' %>"
-            <% if (currentPath === cronJobsPath) { %>aria-current="page"<% } %>
-          >
-            <%- include('icon', { name: 'clock', size: 'sm' }) %>
-            Cron jobs
-          </a>
-          <% } %>
-          <a
-            href="<%= sessionsPath %>"
-            class="md-nav-link<%= currentPath === sessionsPath ? ' btn-active' : '' %>"
-            <% if (currentPath === sessionsPath) { %>aria-current="page"<% } %>
-          >
-            <%- include('icon', { name: 'devices', size: 'sm' }) %>
-            Sessions
           </a>
           <a
             href="<%= accessTokensPath %>"
@@ -102,6 +66,40 @@
             <%- include('icon', { name: 'key', size: 'sm' }) %>
             Access tokens
           </a>
+          <% if (canManageAccounts || canManageCronJobs) {
+            const systemNavOpen = currentPath === accountsPath || currentPath === cronJobsPath;
+          %>
+          <details class="md-nav-group group/system"<% if (systemNavOpen) { %> open<% } %>>
+            <summary class="md-nav-link md-nav-group-toggle">
+              <span class="flex-1 text-left">System</span>
+              <span class="md-nav-group-chevron shrink-0 transition-transform group-open/system:rotate-90">
+                <%- include('icon', { name: 'chevron-right', size: 'sm' }) %>
+              </span>
+            </summary>
+            <div class="mt-1 flex flex-col gap-1">
+              <% if (canManageAccounts) { %>
+              <a
+                href="<%= accountsPath %>"
+                class="md-nav-link<%= currentPath === accountsPath ? ' btn-active' : '' %>"
+                <% if (currentPath === accountsPath) { %>aria-current="page"<% } %>
+              >
+                <%- include('icon', { name: 'users', size: 'sm' }) %>
+                Accounts
+              </a>
+              <% } %>
+              <% if (canManageCronJobs) { %>
+              <a
+                href="<%= cronJobsPath %>"
+                class="md-nav-link<%= currentPath === cronJobsPath ? ' btn-active' : '' %>"
+                <% if (currentPath === cronJobsPath) { %>aria-current="page"<% } %>
+              >
+                <%- include('icon', { name: 'clock', size: 'sm' }) %>
+                Cron jobs
+              </a>
+              <% } %>
+            </div>
+          </details>
+          <% } %>
         </nav>
       </aside>
       <div class="min-w-0">

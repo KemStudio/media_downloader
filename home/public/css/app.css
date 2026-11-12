@@ -8,7 +8,6 @@
       "Courier New", monospace;
     --color-black: #000;
     --spacing: 0.25rem;
-    --container-xs: 20rem;
     --container-md: 28rem;
     --container-lg: 32rem;
     --container-6xl: 72rem;
@@ -2052,14 +2051,8 @@
   .max-w-6xl {
     max-width: var(--container-6xl);
   }
-  .max-w-\[12rem\] {
-    max-width: 12rem;
-  }
   .max-w-md {
     max-width: var(--container-md);
-  }
-  .max-w-xs {
-    max-width: var(--container-xs);
   }
   .min-w-0 {
     min-width: 0px;
@@ -2143,11 +2136,6 @@
     --tw-space-y-reverse: 0;
     margin-block-start: calc(calc(var(--spacing) * 2) * var(--tw-space-y-reverse));
     margin-block-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-y-reverse)));
-  }
-  .truncate {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
   .overflow-x-auto {
     overflow-x: auto;
@@ -2235,6 +2223,9 @@
   }
   .text-center {
     text-align: center;
+  }
+  .text-left {
+    text-align: left;
   }
   .text-2xl {
     font-size: var(--text-2xl);
@@ -2350,6 +2341,11 @@
     transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
     transition-duration: var(--tw-duration, var(--default-transition-duration));
   }
+  .transition-transform {
+    transition-property: transform, translate, scale, rotate;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
   @layer daisyui.l1.l2 {
     .input-sm {
       --in-size-mul: 8;
@@ -2412,6 +2408,9 @@
     .aura:has( > .checkbox,  > .toggle,  > .badge) {
       --aura-radius: var(--radius-selector);
     }
+  }
+  :is(:where(.group\/system):is([open], :popover-open, :open) .group-open\/system\:rotate-90) {
+    rotate: 90deg;
   }
   @media (width >= 40rem) {
     .sm\:flex-row {
@@ -2731,6 +2730,13 @@
       background-color: color-mix(in oklab, var(--color-primary) 10%, transparent);
     }
     color: var(--color-primary);
+  }
+  .md-nav-group-toggle {
+    width: 100%;
+    list-style-type: none;
+  }
+  .md-nav-group-toggle::-webkit-details-marker {
+    display: none;
   }
   .md-icon {
     display: inline-block;
