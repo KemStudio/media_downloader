@@ -14,7 +14,7 @@
 
     logoutButton.addEventListener('click', async () => {
       const endpoint = logoutButton.dataset.endpoint;
-      const redirect = logoutButton.dataset.redirect || '/login';
+      const redirect = logoutButton.dataset.redirect || '/home/login';
 
       logoutButton.disabled = true;
 

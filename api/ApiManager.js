@@ -13,6 +13,7 @@ import accountsRoutes from './routes/AccountsRoutes.js';
 import changePasswordRoutes from './routes/ChangePasswordRoutes.js';
 import loginRoutes from './routes/LoginRoutes.js';
 import logoutRoutes from './routes/LogoutRoutes.js';
+import mediaDeleteRoutes from './routes/MediaDeleteRoutes.js';
 import mediaDownloadRoutes from './routes/MediaDownloadRoutes.js';
 import mediaListRoutes from './routes/MediaListRoutes.js';
 import registerRoutes from './routes/RegisterRoutes.js';
@@ -53,6 +54,7 @@ export function init(app) {
   app.use(sessionsLogoutRoutes);
   app.use(mediaDownloadRoutes);
   app.use(mediaListRoutes);
+  app.use(mediaDeleteRoutes);
 }
 
 export default {

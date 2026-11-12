@@ -56,13 +56,21 @@ async function processOne(db, row) {
       outputStem: stem,
     });
 
-    update(db, id, {
+    const updated = update(db, id, {
       [STATUS]: STATUSES.COMPLETED,
       [DISK_FILE_NAME]: result.diskFileName,
       [ORIGINAL_FILE_NAME]: result.originalFileName,
       [ERROR_MESSAGE]: null,
       [FINISHED_AT]: nowSqliteUtc(),
     });
+
+    if (!updated) {
+      try {
+        await removeStemArtifacts(outputDir, stem);
+      } catch (cleanupError) {
+        console.error(`media_download: orphan cleanup failed id=${id} ${cleanupError}`);
+      }
+    }
   } catch (error) {
     try {
       await removeStemArtifacts(outputDir, stem);

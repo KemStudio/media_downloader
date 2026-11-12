@@ -238,7 +238,7 @@ function createSessionsPage(root) {
         }
 
         if (response.status === 401) {
-          window.location.href = '/login';
+          window.location.href = '/home/login';
           return;
         }
 
@@ -294,7 +294,7 @@ function createSessionsPage(root) {
       }
 
       if (response.status === 401) {
-        window.location.href = '/login';
+        window.location.href = '/home/login';
         return;
       }
 
@@ -330,7 +330,7 @@ function createSessionsPage(root) {
       }
 
       if (response.status === 401) {
-        window.location.href = '/login';
+        window.location.href = '/home/login';
         return;
       }
 
