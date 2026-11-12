@@ -1,3 +1,4 @@
+(() => {
 const GENERIC_ERROR = 'Something went wrong. Please try again.';
 const UNKNOWN_DEVICE = 'Unknown device';
 const EMPTY_VALUE = '—';
@@ -377,11 +378,18 @@ function createSessionsPage(root) {
   loadSessions(0);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function initSessions() {
   const root = document.getElementById('sessions-page');
   if (!root) {
     return;
   }
 
   createSessionsPage(root);
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initSessions);
+} else {
+  initSessions();
+}
+})();

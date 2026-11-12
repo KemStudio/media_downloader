@@ -20,17 +20,20 @@ DataManager.init();
 const app = express();
 
 app.use(helmet());
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'home', 'public')));
+
+app.set('views', path.join(__dirname, 'home', 'views'));
+app.set('view engine', 'ejs');
+
+// Rate-limit API only — static assets and HTML pages must not share this budget,
+// or later scripts (e.g. logout.js on non-home pages) get 429 and never run.
 app.use(
   rateLimit({
     windowMs: RATE_LIMIT_WINDOW_MS,
     max: RATE_LIMIT_MAX,
   }),
 );
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'home', 'public')));
-
-app.set('views', path.join(__dirname, 'home', 'views'));
-app.set('view engine', 'ejs');
 
 ApiManager.init(app);
 HomeManager.init(app);

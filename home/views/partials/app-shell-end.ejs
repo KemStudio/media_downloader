@@ -1,4 +1,7 @@
   </main>
-  <script src="/js/logout.js" defer></script>
+  <script src="/js/logout.js"></script>
+  <% if (typeof pageScript !== 'undefined' && pageScript) { %>
+  <script src="<%= pageScript %>"></script>
+  <% } %>
 </body>
 </html>
