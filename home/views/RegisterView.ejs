@@ -1,0 +1,65 @@
+<%- include('partials/auth-shell-start', { heading: 'Create account' }) %>
+
+<form
+  id="auth-form"
+  class="flex flex-col gap-3"
+  data-endpoint="<%= apiEndpoint %>"
+  data-mode="register"
+  novalidate
+>
+  <div id="auth-error" class="alert alert-error text-sm hidden" role="alert"></div>
+
+  <label class="form-control w-full">
+    <span class="label-text">Username</span>
+    <input
+      type="text"
+      name="username"
+      class="input input-bordered w-full"
+      autocomplete="username"
+      required
+      minlength="<%= usernameMinLength %>"
+      maxlength="<%= usernameMaxLength %>"
+      pattern="[A-Za-z0-9_]+"
+    >
+  </label>
+
+  <label class="form-control w-full">
+    <span class="label-text">Password</span>
+    <input
+      type="password"
+      name="password"
+      class="input input-bordered w-full"
+      autocomplete="new-password"
+      required
+      minlength="<%= passwordMinLength %>"
+      maxlength="<%= passwordMaxLength %>"
+    >
+  </label>
+
+  <label class="form-control w-full">
+    <span class="label-text">Confirm password</span>
+    <input
+      type="password"
+      name="confirmPassword"
+      class="input input-bordered w-full"
+      autocomplete="new-password"
+      required
+      minlength="<%= passwordMinLength %>"
+      maxlength="<%= passwordMaxLength %>"
+    >
+  </label>
+
+  <p class="text-xs opacity-70">
+    Username <%= usernameMinLength %>–<%= usernameMaxLength %> chars ([a-zA-Z0-9_]).
+    Password <%= passwordMinLength %>–<%= passwordMaxLength %> chars.
+  </p>
+
+  <button type="submit" class="btn btn-primary w-full">Create account</button>
+</form>
+
+<p class="text-center text-sm">
+  Already have an account?
+  <a href="<%= loginPath %>" class="link link-primary">Sign in</a>
+</p>
+
+<%- include('partials/auth-shell-end') %>

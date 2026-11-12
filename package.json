@@ -16,6 +16,8 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
+    "build:css": "tailwindcss -i ./src/css/input.css -o ./home/public/css/app.css",
+    "dev:css": "tailwindcss -i ./src/css/input.css -o ./home/public/css/app.css --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {

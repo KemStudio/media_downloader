@@ -27,6 +27,7 @@ app.use(
   }),
 );
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'home', 'public')));
 
 app.set('views', path.join(__dirname, 'home', 'views'));
 app.set('view engine', 'ejs');

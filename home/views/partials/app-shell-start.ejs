@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <%- include('head') %>
+</head>
+<body class="min-h-screen bg-base-200">
+  <div class="navbar bg-base-100 shadow-sm px-4">
+    <div class="flex-1">
+      <a href="<%= homePath %>" class="btn btn-ghost text-xl">Media Downloader</a>
+    </div>
+    <div class="flex-none gap-3 items-center">
+      <span class="text-sm opacity-80"><%= account.username %></span>
+      <button type="button" id="logout-button" class="btn btn-outline btn-sm" data-endpoint="<%= logoutEndpoint %>" data-redirect="<%= loginPath %>">
+        Logout
+      </button>
+    </div>
+  </div>
+  <main class="p-6">
