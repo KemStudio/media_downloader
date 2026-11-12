@@ -76,6 +76,14 @@
             <%- include('icon', { name: 'devices', size: 'sm' }) %>
             Sessions
           </a>
+          <a
+            href="<%= accessTokensPath %>"
+            class="md-nav-link<%= currentPath === accessTokensPath ? ' btn-active' : '' %>"
+            <% if (currentPath === accessTokensPath) { %>aria-current="page"<% } %>
+          >
+            <%- include('icon', { name: 'key', size: 'sm' }) %>
+            Access tokens
+          </a>
         </nav>
       </aside>
       <div class="min-w-0">

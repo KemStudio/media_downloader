@@ -1,0 +1,158 @@
+<%- include('partials/app-shell-start') %>
+
+<section
+  id="access-tokens-page"
+  data-access-tokens-endpoint="<%= accessTokensEndpoint %>"
+  data-state-template="<%= accessTokenStateTemplate %>"
+  data-delete-template="<%= accessTokenByIdTemplate %>"
+  data-page-limit="<%= accessTokensPageLimit %>"
+  data-can-create="<%= canCreateAccessToken ? '1' : '0' %>"
+  data-state-active="<%= accessTokenStates.ACTIVE %>"
+  data-state-deactive="<%= accessTokenStates.DEACTIVE %>"
+  data-state-hide="<%= accessTokenStates.HIDE %>"
+>
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-5">
+    <header class="md-page-header mb-0">
+      <h1 class="md-page-title">Access tokens</h1>
+      <p class="md-page-desc">Create and manage access tokens for your account.</p>
+    </header>
+    <button
+      type="button"
+      id="access-token-open-create"
+      class="btn btn-primary btn-sm gap-1.5 shrink-0"
+      <% if (!canCreateAccessToken) { %>disabled<% } %>
+    >
+      <%- include('partials/icon', { name: 'key', size: 'sm' }) %>
+      Create token
+    </button>
+  </div>
+
+  <% if (!canCreateAccessToken) { %>
+  <p class="text-sm text-base-content/65 mb-5">
+    Only active accounts can create new access tokens.
+  </p>
+  <% } %>
+
+  <fieldset class="mb-5">
+    <legend class="text-sm font-medium mb-2">Filter by state</legend>
+    <div class="flex flex-wrap gap-4">
+      <label class="label cursor-pointer gap-2 justify-start p-0">
+        <input
+          type="checkbox"
+          id="filter-state-active"
+          class="checkbox checkbox-sm"
+          value="<%= accessTokenStates.ACTIVE %>"
+          checked
+        />
+        <span class="label-text">Active</span>
+      </label>
+      <label class="label cursor-pointer gap-2 justify-start p-0">
+        <input
+          type="checkbox"
+          id="filter-state-deactive"
+          class="checkbox checkbox-sm"
+          value="<%= accessTokenStates.DEACTIVE %>"
+          checked
+        />
+        <span class="label-text">Deactive</span>
+      </label>
+      <label class="label cursor-pointer gap-2 justify-start p-0">
+        <input
+          type="checkbox"
+          id="filter-state-hide"
+          class="checkbox checkbox-sm"
+          value="<%= accessTokenStates.HIDE %>"
+        />
+        <span class="label-text">Hide</span>
+      </label>
+    </div>
+  </fieldset>
+
+  <div id="access-tokens-error" class="alert alert-error text-sm hidden mb-4" role="alert"></div>
+  <p id="access-tokens-status" class="text-sm text-base-content/65 mb-4">Loading access tokens…</p>
+
+  <div id="access-tokens-results" class="mb-5">
+    <div id="access-tokens-table-wrap" class="hidden md:block overflow-x-auto md-surface">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Prefix</th>
+            <th>State</th>
+            <th>Updated</th>
+            <th class="w-64">Action</th>
+          </tr>
+        </thead>
+        <tbody id="access-tokens-table-body"></tbody>
+      </table>
+    </div>
+    <ul id="access-tokens-list" class="md:hidden flex flex-col gap-3"></ul>
+  </div>
+
+  <div class="flex items-center justify-between gap-3">
+    <button type="button" id="access-tokens-prev" class="btn btn-outline btn-sm gap-1.5" disabled>
+      <%- include('partials/icon', { name: 'caret-left', size: 'sm' }) %>
+      Previous
+    </button>
+    <span id="access-tokens-page-info" class="text-sm text-base-content/65"></span>
+    <button type="button" id="access-tokens-next" class="btn btn-outline btn-sm gap-1.5" disabled>
+      Next
+      <%- include('partials/icon', { name: 'caret-right', size: 'sm' }) %>
+    </button>
+  </div>
+
+  <dialog id="access-token-create-dialog" class="md-dialog">
+    <div class="md-dialog-panel">
+      <div id="access-token-create-step" class="flex flex-col gap-4">
+        <header>
+          <h2 class="text-lg font-semibold tracking-tight">Create access token</h2>
+          <p class="mt-1 text-sm text-base-content/65">
+            Choose a name. The secret is shown only once after creation.
+          </p>
+        </header>
+
+        <div id="access-token-create-error" class="alert alert-error text-sm hidden" role="alert"></div>
+
+        <form id="access-token-create-form" class="flex flex-col gap-4">
+          <label class="form-control w-full">
+            <span class="label-text mb-1">Name</span>
+            <input
+              type="text"
+              id="access-token-name"
+              name="name"
+              class="input input-bordered input-sm w-full"
+              maxlength="120"
+              required
+              autocomplete="off"
+            />
+          </label>
+          <div class="flex flex-wrap justify-end gap-2">
+            <button type="button" id="access-token-create-cancel" class="btn btn-ghost btn-sm">
+              Cancel
+            </button>
+            <button type="submit" id="access-token-create-button" class="btn btn-primary btn-sm gap-1.5">
+              <%- include('partials/icon', { name: 'key', size: 'sm' }) %>
+              Create
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div id="access-token-created-step" class="hidden flex-col gap-4">
+        <header>
+          <h2 class="text-lg font-semibold tracking-tight">Token created</h2>
+          <p class="mt-1 text-sm text-base-content/65">
+            Copy your token now. You will not see it again.
+          </p>
+        </header>
+        <code id="access-token-created-value" class="block break-all text-xs bg-base-200 p-3 rounded-box border border-base-300"></code>
+        <div class="flex flex-wrap justify-end gap-2">
+          <button type="button" id="access-token-copy-button" class="btn btn-outline btn-sm">Copy</button>
+          <button type="button" id="access-token-dismiss-button" class="btn btn-primary btn-sm">Done</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+</section>
+
+<%- include('partials/app-shell-end', { pageScript: '/js/access-tokens.js' }) %>

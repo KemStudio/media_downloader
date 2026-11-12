@@ -1,6 +1,7 @@
 import { LOGOUT } from '../../api/ApiUrl.js';
 import { ROLE, ROLES } from '../../database/model/Account.js';
 import {
+  ACCESS_TOKENS,
   ACCOUNTS,
   CHANGE_PASSWORD,
   HOME,
@@ -14,6 +15,7 @@ export function appNavLocals(req, res, next) {
   res.locals.homePath = HOME;
   res.locals.accountsPath = ACCOUNTS;
   res.locals.sessionsPath = SESSIONS;
+  res.locals.accessTokensPath = ACCESS_TOKENS;
   res.locals.changePasswordPath = CHANGE_PASSWORD;
   res.locals.loginPath = LOGIN;
   res.locals.logoutEndpoint = LOGOUT;

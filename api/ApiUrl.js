@@ -9,3 +9,6 @@ export const ACCOUNT_BY_ID = '/api/accounts/:id';
 export const SESSIONS = '/api/sessions';
 export const SESSIONS_LOGOUT_OTHERS = '/api/sessions/logout-others';
 export const SESSIONS_LOGOUT = '/api/sessions/:id/logout';
+export const ACCESS_TOKENS = '/api/access-tokens';
+export const ACCESS_TOKEN_STATE = '/api/access-tokens/:id/state';
+export const ACCESS_TOKEN_BY_ID = '/api/access-tokens/:id';

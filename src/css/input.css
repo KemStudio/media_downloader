@@ -99,4 +99,16 @@
   .md-icon {
     @apply inline-block shrink-0;
   }
+
+  .md-dialog {
+    @apply m-auto max-w-lg w-[calc(100%-2rem)] rounded-box border border-base-300 bg-transparent p-0 shadow-lg;
+  }
+
+  .md-dialog::backdrop {
+    background: rgb(15 23 42 / 0.45);
+  }
+
+  .md-dialog-panel {
+    @apply bg-base-100 rounded-box p-5;
+  }
 }
