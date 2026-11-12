@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
 import { createTableSQL, IS_ACTIVE, ROLE, ROLES, USERNAME } from './model/Account.js';
+import { createTableSQL as createSessionTableSQL } from './model/Session.js';
 import { create } from './modelCRUD/account/Create.js';
 import { findByUsername } from './modelCRUD/account/FindByUsername.js';
 
@@ -18,6 +19,7 @@ function ensureDataDir() {
 
 function createTables(database) {
   database.exec(createTableSQL);
+  database.exec(createSessionTableSQL);
 }
 
 function seedRootIfMissing(database) {

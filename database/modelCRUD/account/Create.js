@@ -9,6 +9,7 @@ import {
 import { assertRole } from './AssertRole.js';
 import { findById } from './FindById.js';
 import { hashPassword } from './Password.js';
+import { assertValidCredentials } from './ValidateCredentials.js';
 
 export function create(db, {
   [USERNAME]: username,
@@ -16,10 +17,7 @@ export function create(db, {
   [ROLE]: role = ROLES.USER,
   [IS_ACTIVE]: isActive = true,
 }) {
-  if (!username || !password) {
-    throw new Error(`${USERNAME} and password are required`);
-  }
-
+  assertValidCredentials(username, password);
   assertRole(role);
 
   const passwordHash = hashPassword(password);

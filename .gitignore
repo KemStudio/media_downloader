@@ -159,3 +159,4 @@ vite.config.ts.timestamp-*
 .cursorrules
 .graphifyignore
 AGENTS.md
+.cursor

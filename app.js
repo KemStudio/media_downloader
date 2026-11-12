@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import ApiManager from './api/ApiManager.js';
 import DataManager from './database/DataManager.js';
 import HomeManager from './home/HomeManager.js';
 
@@ -25,10 +26,12 @@ app.use(
     max: RATE_LIMIT_MAX,
   }),
 );
+app.use(express.json());
 
 app.set('views', path.join(__dirname, 'home', 'views'));
 app.set('view engine', 'ejs');
 
+ApiManager.init(app);
 HomeManager.init(app);
 
 app.listen(PORT, () => {
