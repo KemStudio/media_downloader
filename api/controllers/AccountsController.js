@@ -90,6 +90,14 @@ export function updateState(req, res) {
       return;
     }
 
+    if (
+      (nextState === STATES.DEACTIVE || nextState === STATES.HIDE)
+      && target[ROLE] !== ROLES.USER
+    ) {
+      res.status(400).json({ error: 'only user accounts can be deactivated or hidden' });
+      return;
+    }
+
     assertStateTransition(target[STATE], nextState);
 
     const updated = update(db, target[ID], { [STATE]: nextState });
@@ -97,6 +105,70 @@ export function updateState(req, res) {
     if (nextState === STATES.HIDE) {
       removeByAccountId(db, target[ID]);
     }
+
+    res.status(200).json({ account: toPublicAccount(updated) });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+}
+
+export function updateRole(req, res) {
+  const accountId = parseAccountId(req.params.id);
+  const nextRole = req.body?.role;
+
+  if (accountId === null) {
+    res.status(400).json({ error: 'id must be a positive integer' });
+    return;
+  }
+
+  if (typeof nextRole !== 'string' || !nextRole.trim()) {
+    res.status(400).json({ error: 'role is required' });
+    return;
+  }
+
+  if (nextRole !== ROLES.ADMIN && nextRole !== ROLES.USER) {
+    res.status(400).json({ error: 'role must be admin or user' });
+    return;
+  }
+
+  try {
+    const db = getDb();
+    const target = findById(db, accountId);
+
+    if (!target) {
+      res.status(404).json({ error: 'account not found' });
+      return;
+    }
+
+    if (target[ROLE] === ROLES.ROOT) {
+      res.status(400).json({ error: 'cannot change role of root account' });
+      return;
+    }
+
+    if (target[ROLE] === nextRole) {
+      res.status(400).json({ error: `role is already ${nextRole}` });
+      return;
+    }
+
+    if (nextRole === ROLES.ADMIN) {
+      if (target[STATE] !== STATES.ACTIVE || target[ROLE] !== ROLES.USER) {
+        res.status(400).json({
+          error: 'only active user accounts can be promoted to admin',
+        });
+        return;
+      }
+    }
+
+    if (nextRole === ROLES.USER) {
+      if (target[STATE] !== STATES.ACTIVE || target[ROLE] !== ROLES.ADMIN) {
+        res.status(400).json({
+          error: 'only active admin accounts can be demoted to user',
+        });
+        return;
+      }
+    }
+
+    const updated = update(db, target[ID], { [ROLE]: nextRole });
 
     res.status(200).json({ account: toPublicAccount(updated) });
   } catch (error) {
@@ -138,5 +210,6 @@ export function removeAccount(req, res) {
 export default {
   list,
   updateState,
+  updateRole,
   removeAccount,
 };

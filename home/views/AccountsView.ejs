@@ -4,13 +4,17 @@
   id="accounts-page"
   data-accounts-endpoint="<%= accountsEndpoint %>"
   data-state-template="<%= accountStateTemplate %>"
+  data-role-template="<%= accountRoleTemplate %>"
   data-delete-template="<%= accountByIdTemplate %>"
   data-page-limit="<%= accountsPageLimit %>"
   data-viewer-role="<%= viewerRole %>"
   data-can-delete="<%= canDeleteAccounts ? '1' : '0' %>"
+  data-can-change-role="<%= canChangeAccountRole ? '1' : '0' %>"
   data-state-active="<%= accountStates.ACTIVE %>"
   data-state-deactive="<%= accountStates.DEACTIVE %>"
   data-state-hide="<%= accountStates.HIDE %>"
+  data-role-user="<%= accountRoles.USER %>"
+  data-role-admin="<%= accountRoles.ADMIN %>"
 >
   <header class="md-page-header">
     <h1 class="md-page-title">Accounts</h1>

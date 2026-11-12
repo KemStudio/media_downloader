@@ -7,6 +7,8 @@
     'sign-out': '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
     'caret-left': '<path d="m15 18-6-6 6-6"/>',
     'caret-right': '<path d="m9 18 6-6-6-6"/>',
+    shield: '<path d="M12 3 5 6v5c0 4.5 2.9 8.3 7 9.5 4.1-1.2 7-5 7-9.5V6l-7-3z"/>',
+    user: '<circle cx="12" cy="8" r="3.5"/><path d="M5.5 19.5a6.5 6.5 0 0 1 13 0"/>',
   };
 
   function svg(name, size = 16) {

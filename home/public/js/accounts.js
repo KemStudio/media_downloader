@@ -3,6 +3,7 @@ const GENERIC_ERROR = 'Something went wrong. Please try again.';
 const EMPTY_VALUE = '—';
 const ROLE_ROOT = 'root';
 const ROLE_ADMIN = 'admin';
+const ROLE_USER = 'user';
 
 function escapeHtml(value) {
   return String(value)
@@ -59,13 +60,17 @@ function buildIdUrl(template, accountId) {
 function createAccountsPage(root) {
   const accountsEndpoint = root.dataset.accountsEndpoint;
   const stateTemplate = root.dataset.stateTemplate;
+  const roleTemplate = root.dataset.roleTemplate;
   const deleteTemplate = root.dataset.deleteTemplate;
   const pageLimit = Number(root.dataset.pageLimit) || 20;
   const viewerRole = root.dataset.viewerRole || '';
   const canDelete = root.dataset.canDelete === '1';
+  const canChangeRole = root.dataset.canChangeRole === '1';
   const stateActive = root.dataset.stateActive;
   const stateDeactive = root.dataset.stateDeactive;
   const stateHide = root.dataset.stateHide;
+  const roleUser = root.dataset.roleUser || ROLE_USER;
+  const roleAdmin = root.dataset.roleAdmin || ROLE_ADMIN;
 
   const resultsElement = document.getElementById('accounts-results');
   const tableBodyElement = document.getElementById('accounts-table-body');
@@ -123,6 +128,10 @@ function createAccountsPage(root) {
     return true;
   }
 
+  function canDeactivateOrHide(account) {
+    return canChangeState(account) && account.role === roleUser;
+  }
+
   function iconLabel(name, label) {
     if (window.MdIcons?.labeled) {
       return window.MdIcons.labeled(name, label);
@@ -135,8 +144,28 @@ function createAccountsPage(root) {
     const buttons = [];
     const accountId = escapeHtml(account.id);
 
+    if (
+      canChangeRole
+      && account.state === stateActive
+      && account.role === roleUser
+    ) {
+      buttons.push(
+        `<button type="button" class="btn btn-outline btn-sm gap-1.5" data-account-action="role" data-account-id="${accountId}" data-next-role="${escapeHtml(roleAdmin)}">${iconLabel('shield', 'Admin')}</button>`,
+      );
+    }
+
+    if (
+      canChangeRole
+      && account.state === stateActive
+      && account.role === roleAdmin
+    ) {
+      buttons.push(
+        `<button type="button" class="btn btn-outline btn-sm gap-1.5" data-account-action="role" data-account-id="${accountId}" data-next-role="${escapeHtml(roleUser)}">${iconLabel('user', 'User')}</button>`,
+      );
+    }
+
     if (canChangeState(account)) {
-      if (account.state === stateActive) {
+      if (account.state === stateActive && canDeactivateOrHide(account)) {
         buttons.push(
           `<button type="button" class="btn btn-outline btn-sm gap-1.5" data-account-action="state" data-account-id="${accountId}" data-next-state="${escapeHtml(stateDeactive)}">${iconLabel('pause-circle', 'Deactive')}</button>`,
         );
@@ -148,9 +177,11 @@ function createAccountsPage(root) {
         );
       }
 
-      buttons.push(
-        `<button type="button" class="btn btn-outline btn-warning btn-sm gap-1.5" data-account-action="state" data-account-id="${accountId}" data-next-state="${escapeHtml(stateHide)}">${iconLabel('eye-slash', 'Hide')}</button>`,
-      );
+      if (canDeactivateOrHide(account)) {
+        buttons.push(
+          `<button type="button" class="btn btn-outline btn-warning btn-sm gap-1.5" data-account-action="state" data-account-id="${accountId}" data-next-state="${escapeHtml(stateHide)}">${iconLabel('eye-slash', 'Hide')}</button>`,
+        );
+      }
     }
 
     if (account.state === stateHide && canDelete) {
@@ -376,6 +407,54 @@ function createAccountsPage(root) {
     }
   }
 
+  async function updateAccountRole(accountId, nextRole, button) {
+    hideError(errorElement);
+    setLoading(true);
+    if (button) {
+      button.disabled = true;
+    }
+
+    try {
+      const response = await fetch(buildIdUrl(roleTemplate, accountId), {
+        method: 'PATCH',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ role: nextRole }),
+      });
+
+      let payload = null;
+      try {
+        payload = await response.json();
+      } catch {
+        payload = null;
+      }
+
+      if (response.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+
+      if (response.status === 403) {
+        showError(errorElement, payload?.error || 'Forbidden');
+        return;
+      }
+
+      if (!response.ok) {
+        showError(errorElement, payload?.error || GENERIC_ERROR);
+        return;
+      }
+
+      await loadAccounts(startIndex);
+    } catch {
+      showError(errorElement, GENERIC_ERROR);
+    } finally {
+      setLoading(false);
+      updatePagination();
+    }
+  }
+
   async function deleteAccount(accountId, button) {
     hideError(errorElement);
     setLoading(true);
@@ -461,6 +540,15 @@ function createAccountsPage(root) {
         return;
       }
       updateAccountState(accountId, nextState, button);
+      return;
+    }
+
+    if (action === 'role') {
+      const nextRole = button.getAttribute('data-next-role');
+      if (!nextRole) {
+        return;
+      }
+      updateAccountRole(accountId, nextRole, button);
       return;
     }
 

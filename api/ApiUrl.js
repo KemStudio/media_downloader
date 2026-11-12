@@ -4,6 +4,7 @@ export const LOGOUT = '/api/logout';
 export const ACCOUNT_PASSWORD = '/api/account/password';
 export const ACCOUNTS = '/api/accounts';
 export const ACCOUNT_STATE = '/api/accounts/:id/state';
+export const ACCOUNT_ROLE = '/api/accounts/:id/role';
 export const ACCOUNT_BY_ID = '/api/accounts/:id';
 export const SESSIONS = '/api/sessions';
 export const SESSIONS_LOGOUT_OTHERS = '/api/sessions/logout-others';
