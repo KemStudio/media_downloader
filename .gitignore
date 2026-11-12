@@ -70,18 +70,9 @@ web_modules/
 .env.*
 !.env.example
 
-# Cron SQLite
-api_cron_job/data/*.sqlite*
-api_cron_job_local/data/*.sqlite
-api_cron_job_local/data/*.sqlite-*
-
-# Downloader media files
-api_downloader/media/**
-!api_downloader/media/.gitkeep
-
-# App SQLite database
-database/data/*.db
-database/data/*.db-*
+# App runtime data (SQLite + downloaded media)
+data/
+data/
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -166,4 +157,3 @@ vite.config.ts.timestamp-*
 AGENTS.md
 .cursor
 graphify-out
-api_downloader/media

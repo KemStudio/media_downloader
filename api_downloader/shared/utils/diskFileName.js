@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const MEDIA_ROOT = path.join(__dirname, '..', '..', 'media');
+export const MEDIA_ROOT = path.join(__dirname, '..', '..', 'data', 'medias');
 
 export function mediaDirFor(source, site) {
   return path.join(MEDIA_ROOT, source, site);

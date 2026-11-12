@@ -10,7 +10,7 @@ import { create } from './modelCRUD/account/Create.js';
 import { findByUsername } from './modelCRUD/account/FindByUsername.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = path.join(__dirname, 'data');
+const DATA_DIR = path.join(__dirname, '..', 'data', 'database');
 const DB_PATH = path.join(DATA_DIR, 'media_downloader.db');
 
 let db = null;

@@ -9,7 +9,7 @@ export const ENABLED = '/api_cron_job/enabled';
 export const CRON = '/api_cron_job/cron';
 export const INTERVAL = '/api_cron_job/interval';
 
-export const SQLITE_PATH = path.join(__dirname, 'data', 'cron_job.sqlite');
+export const SQLITE_PATH = path.join(__dirname, '..', 'data', 'database', 'cron_job.sqlite');
 
 export default {
   LIST,
