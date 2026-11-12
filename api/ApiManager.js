@@ -8,6 +8,7 @@ import {
   SESSION_COOKIE_SECURE,
   SESSION_MAX_AGE_MS,
 } from './Setting.js';
+import changePasswordRoutes from './routes/ChangePasswordRoutes.js';
 import loginRoutes from './routes/LoginRoutes.js';
 import logoutRoutes from './routes/LogoutRoutes.js';
 import registerRoutes from './routes/RegisterRoutes.js';
@@ -40,6 +41,7 @@ export function init(app) {
   app.use(registerRoutes);
   app.use(loginRoutes);
   app.use(logoutRoutes);
+  app.use(changePasswordRoutes);
   app.use(sessionsRoutes);
   app.use(sessionsLogoutOthersRoutes);
   app.use(sessionsLogoutRoutes);
