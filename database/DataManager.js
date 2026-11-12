@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
 import { createTableSQL, ROLE, ROLES, STATE, STATES, USERNAME } from './model/Account.js';
 import { createTableSQL as createAccessTokenTableSQL } from './model/AccessToken.js';
+import { createTableSQL as createDownloadFileTableSQL } from './model/DownloadFile.js';
 import { createTableSQL as createDownloadMediaTableSQL } from './model/DownloadMedia.js';
 import { createTableSQL as createSessionTableSQL } from './model/Session.js';
 import { create } from './modelCRUD/account/Create.js';
@@ -24,6 +25,7 @@ function createTables(database) {
   database.exec(createSessionTableSQL);
   database.exec(createAccessTokenTableSQL);
   database.exec(createDownloadMediaTableSQL);
+  database.exec(createDownloadFileTableSQL);
 }
 
 function seedRootIfMissing(database) {

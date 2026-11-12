@@ -6,15 +6,19 @@ import {
 } from '../../api_downloader/utils/diskFileName.js';
 import { getDb } from '../../database/DataManager.js';
 import {
-  ACCOUNT_ID,
   DISK_FILE_NAME,
+  DOWNLOAD_MEDIA_ID,
   ORIGINAL_FILE_NAME,
+} from '../../database/model/DownloadFile.js';
+import {
+  ACCOUNT_ID,
   SITE,
   SOURCE,
   STATUS,
   STATUSES,
 } from '../../database/model/DownloadMedia.js';
-import { findById } from '../../database/modelCRUD/downloadMedia/FindById.js';
+import { findById as findFileById } from '../../database/modelCRUD/downloadFile/FindById.js';
+import { findById as findMediaById } from '../../database/modelCRUD/downloadMedia/FindById.js';
 import { ACCOUNT_ID_SESSION_KEY } from '../utils/session.js';
 
 function sessionAccountId(req) {
@@ -33,7 +37,7 @@ function resolveAccountId(req) {
   return sessionAccountId(req);
 }
 
-function parseMediaId(raw) {
+function parseFileId(raw) {
   if (raw === undefined || raw === null || raw === '') {
     return null;
   }
@@ -57,16 +61,23 @@ export function mediaDownload(req, res) {
     return;
   }
 
-  const id = parseMediaId(req.params.id);
+  const id = parseFileId(req.params.id);
   if (id === null) {
     res.status(400).json({ error: 'id must be a positive integer' });
     return;
   }
 
   try {
-    const media = findById(getDb(), id);
+    const db = getDb();
+    const file = findFileById(db, id);
+    if (!file) {
+      res.status(404).json({ error: 'download file not found' });
+      return;
+    }
+
+    const media = findMediaById(db, file[DOWNLOAD_MEDIA_ID]);
     if (!media || media[ACCOUNT_ID] !== accountId) {
-      res.status(404).json({ error: 'download media not found' });
+      res.status(404).json({ error: 'download file not found' });
       return;
     }
 
@@ -75,7 +86,7 @@ export function mediaDownload(req, res) {
       return;
     }
 
-    const diskFileName = media[DISK_FILE_NAME];
+    const diskFileName = file[DISK_FILE_NAME];
     if (!diskFileName || typeof diskFileName !== 'string') {
       res.status(404).json({ error: 'download file not found' });
       return;
@@ -104,9 +115,7 @@ export function mediaDownload(req, res) {
       return;
     }
 
-    const downloadName = sanitizeOriginalFileName(
-      media[ORIGINAL_FILE_NAME] || diskFileName,
-    );
+    const downloadName = sanitizeOriginalFileName(file[ORIGINAL_FILE_NAME]);
 
     res.download(absPath, downloadName, (error) => {
       if (!error || res.headersSent) {

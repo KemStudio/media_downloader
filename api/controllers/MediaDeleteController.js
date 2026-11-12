@@ -1,17 +1,15 @@
 import path from 'node:path';
-import {
-  mediaDirFor,
-  removeStemArtifacts,
-} from '../../api_downloader/utils/diskFileName.js';
+import { mediaDirFor, removeStemArtifacts } from '../../api_downloader/utils/diskFileName.js';
 import { getDb } from '../../database/DataManager.js';
+import { DISK_FILE_NAME } from '../../database/model/DownloadFile.js';
 import {
   ACCOUNT_ID,
-  DISK_FILE_NAME,
   SITE,
   SOURCE,
   STATUS,
   STATUSES,
 } from '../../database/model/DownloadMedia.js';
+import { findByMediaId } from '../../database/modelCRUD/downloadFile/FindByMediaId.js';
 import { findById } from '../../database/modelCRUD/downloadMedia/FindById.js';
 import { remove as removeDownloadMedia } from '../../database/modelCRUD/downloadMedia/Remove.js';
 import { ACCOUNT_ID_SESSION_KEY } from '../utils/session.js';
@@ -22,6 +20,14 @@ function sessionAccountId(req) {
     return null;
   }
   return accountId;
+}
+
+function resolveAccountId(req) {
+  const bearerAccountId = Number(req.accountId);
+  if (Number.isInteger(bearerAccountId) && bearerAccountId >= 1) {
+    return bearerAccountId;
+  }
+  return sessionAccountId(req);
 }
 
 function parseMediaId(raw) {
@@ -54,8 +60,24 @@ function diskCleanupStem(diskFileName) {
   return path.parse(safeName).name || safeName;
 }
 
+async function removeStoredDiskFiles(source, site, files) {
+  const dir = mediaDirFor(source, site);
+  const stems = new Set();
+
+  for (const file of files) {
+    const stem = diskCleanupStem(file[DISK_FILE_NAME]);
+    if (stem) {
+      stems.add(stem);
+    }
+  }
+
+  for (const stem of stems) {
+    await removeStemArtifacts(dir, stem);
+  }
+}
+
 export async function mediaDelete(req, res) {
-  const accountId = sessionAccountId(req);
+  const accountId = resolveAccountId(req);
   if (accountId === null) {
     res.status(401).json({ error: 'not authenticated' });
     return;
@@ -78,21 +100,18 @@ export async function mediaDelete(req, res) {
     const source = media[SOURCE];
     const site = media[SITE];
     const status = media[STATUS];
-    const diskFileName = media[DISK_FILE_NAME];
+    const files = findByMediaId(db, id);
     const shouldCleanupDisk = status !== STATUSES.DOWNLOADING;
 
-    removeDownloadMedia(db, id);
-
     if (shouldCleanupDisk) {
-      const stem = diskCleanupStem(diskFileName);
-      if (stem) {
-        try {
-          await removeStemArtifacts(mediaDirFor(source, site), stem);
-        } catch (cleanupError) {
-          console.error(`media_delete: disk cleanup failed id=${id} ${cleanupError}`);
-        }
+      try {
+        await removeStoredDiskFiles(source, site, files);
+      } catch (cleanupError) {
+        console.error(`media_delete: disk cleanup failed id=${id} ${cleanupError}`);
       }
     }
+
+    removeDownloadMedia(db, id);
 
     res.status(200).json({ ok: true });
   } catch (error) {

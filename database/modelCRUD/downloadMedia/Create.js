@@ -1,6 +1,5 @@
 import {
   ACCOUNT_ID,
-  ORIGINAL_FILE_NAME,
   SITE,
   SOURCE,
   STATUS,
@@ -16,7 +15,6 @@ export function create(db, {
   [SITE]: site,
   [URL]: url,
   [STATUS]: status = STATUSES.PENDING,
-  [ORIGINAL_FILE_NAME]: originalFileName = null,
 }) {
   if (!Number.isInteger(accountId) || accountId < 1) {
     throw new Error('account_id must be a positive integer');
@@ -38,13 +36,6 @@ export function create(db, {
     throw new Error('status is invalid');
   }
 
-  if (
-    originalFileName !== null
-    && (typeof originalFileName !== 'string' || !originalFileName.trim())
-  ) {
-    throw new Error('original_file_name must be a non-empty string or null');
-  }
-
   const result = db
     .prepare(
       `INSERT INTO ${TABLE_NAME} (
@@ -52,10 +43,9 @@ export function create(db, {
          ${SOURCE},
          ${SITE},
          ${URL},
-         ${STATUS},
-         ${ORIGINAL_FILE_NAME}
+         ${STATUS}
        )
-       VALUES (?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?)`,
     )
     .run(
       accountId,
@@ -63,7 +53,6 @@ export function create(db, {
       site.trim(),
       url.trim(),
       status,
-      originalFileName == null ? null : originalFileName.trim(),
     );
 
   return findById(db, Number(result.lastInsertRowid));

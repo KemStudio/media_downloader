@@ -3,7 +3,8 @@
 <section
   id="downloads-page"
   data-media-endpoint="<%= mediaEndpoint %>"
-  data-media-download-endpoint="<%= mediaDownloadEndpoint %>"
+  data-media-files-template="<%= mediaFilesTemplate %>"
+  data-media-download-template="<%= mediaDownloadTemplate %>"
   data-media-delete-template="<%= mediaDeleteTemplate %>"
   data-page-limit="<%= mediaPageLimit %>"
   data-status-pending="<%= downloadStatuses.PENDING %>"
@@ -106,7 +107,9 @@
         </div>
         <div>
           <dt class="text-base-content/65">file_name</dt>
-          <dd id="downloads-info-file-name" class="break-all">—</dd>
+          <dd id="downloads-info-file-name" class="break-all">
+            <ul id="downloads-info-file-names" class="flex flex-col gap-1"></ul>
+          </dd>
         </div>
         <div>
           <dt class="text-base-content/65">Created</dt>

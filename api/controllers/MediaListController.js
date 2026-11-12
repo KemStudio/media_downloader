@@ -1,6 +1,16 @@
 import { MEDIA_PAGE_LIMIT } from '../../api_downloader/Setting.js';
 import { getDb } from '../../database/DataManager.js';
-import { STATUSES } from '../../database/model/DownloadMedia.js';
+import {
+  ID as FILE_ID,
+  ORIGINAL_FILE_NAME,
+} from '../../database/model/DownloadFile.js';
+import {
+  ACCOUNT_ID,
+  STATUS,
+  STATUSES,
+} from '../../database/model/DownloadMedia.js';
+import { findByMediaId } from '../../database/modelCRUD/downloadFile/FindByMediaId.js';
+import { findById } from '../../database/modelCRUD/downloadMedia/FindById.js';
 import { findPageByAccountId } from '../../database/modelCRUD/downloadMedia/FindPageByAccountId.js';
 import {
   ACCOUNT_ID_SESSION_KEY,
@@ -16,6 +26,31 @@ function sessionAccountId(req) {
     return null;
   }
   return accountId;
+}
+
+function resolveAccountId(req) {
+  const bearerAccountId = Number(req.accountId);
+  if (Number.isInteger(bearerAccountId) && bearerAccountId >= 1) {
+    return bearerAccountId;
+  }
+  return sessionAccountId(req);
+}
+
+function parseMediaId(raw) {
+  if (raw === undefined || raw === null || raw === '') {
+    return null;
+  }
+
+  if (Array.isArray(raw)) {
+    return null;
+  }
+
+  const value = typeof raw === 'number' ? raw : Number(raw);
+  if (!Number.isInteger(value) || value < 1) {
+    return null;
+  }
+
+  return value;
 }
 
 function parseStatusesQuery(raw) {
@@ -74,7 +109,7 @@ function parsePage(raw) {
 }
 
 export function list(req, res) {
-  const accountId = sessionAccountId(req);
+  const accountId = resolveAccountId(req);
   if (accountId === null) {
     res.status(401).json({ error: 'not authenticated' });
     return;
@@ -125,6 +160,43 @@ export function list(req, res) {
   }
 }
 
+export function listFiles(req, res) {
+  const accountId = resolveAccountId(req);
+  if (accountId === null) {
+    res.status(401).json({ error: 'not authenticated' });
+    return;
+  }
+
+  const id = parseMediaId(req.params.id);
+  if (id === null) {
+    res.status(400).json({ error: 'id must be a positive integer' });
+    return;
+  }
+
+  try {
+    const media = findById(getDb(), id);
+    if (!media || media[ACCOUNT_ID] !== accountId) {
+      res.status(404).json({ error: 'download media not found' });
+      return;
+    }
+
+    if (media[STATUS] !== STATUSES.COMPLETED) {
+      res.status(409).json({ error: 'download media is not completed' });
+      return;
+    }
+
+    const files = findByMediaId(getDb(), id).map((file) => ({
+      [FILE_ID]: file[FILE_ID],
+      [ORIGINAL_FILE_NAME]: file[ORIGINAL_FILE_NAME],
+    }));
+
+    res.status(200).json({ files });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
 export default {
   list,
+  listFiles,
 };

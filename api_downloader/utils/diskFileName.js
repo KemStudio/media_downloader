@@ -66,7 +66,11 @@ export async function removeStemArtifacts(dir, stem) {
 
   await Promise.all(
     entries
-      .filter((name) => name === stem || name.startsWith(`${stem}.`))
+      .filter((name) => (
+        name === stem
+        || name.startsWith(`${stem}.`)
+        || name.startsWith(`${stem}_`)
+      ))
       .map(async (name) => {
         try {
           await fs.promises.unlink(path.join(dir, name));

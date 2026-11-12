@@ -2,6 +2,7 @@
 const GENERIC_ERROR = 'Something went wrong. Please try again.';
 const EMPTY_VALUE = '—';
 const DELETE_CONFIRM = 'Delete this media item?';
+const DOWNLOAD_FILE_GAP_MS = 400;
 
 function escapeHtml(value) {
   return String(value)
@@ -52,7 +53,8 @@ function buildIdUrl(template, id) {
 
 function createDownloadsPage(root) {
   const mediaEndpoint = root.dataset.mediaEndpoint;
-  const mediaDownloadEndpoint = root.dataset.mediaDownloadEndpoint;
+  const mediaFilesTemplate = root.dataset.mediaFilesTemplate;
+  const mediaDownloadTemplate = root.dataset.mediaDownloadTemplate;
   const mediaDeleteTemplate = root.dataset.mediaDeleteTemplate;
   const pageLimit = Number(root.dataset.pageLimit) || 20;
   const statusCompleted = root.dataset.statusCompleted || 'completed';
@@ -68,7 +70,7 @@ function createDownloadsPage(root) {
   const reloadButton = document.getElementById('downloads-reload');
   const infoDialog = document.getElementById('downloads-info-dialog');
   const infoUrlElement = document.getElementById('downloads-info-url');
-  const infoFileNameElement = document.getElementById('downloads-info-file-name');
+  const infoFileNamesElement = document.getElementById('downloads-info-file-names');
   const infoCreatedElement = document.getElementById('downloads-info-created');
   const infoCloseButton = document.getElementById('downloads-info-close');
   const filterInputs = [
@@ -81,6 +83,7 @@ function createDownloadsPage(root) {
   let page = 1;
   let total = 0;
   let loading = false;
+  let infoRequestId = 0;
   const itemsById = new Map();
 
   function selectedStatuses() {
@@ -157,11 +160,11 @@ function createDownloadsPage(root) {
 
     const canDownload = item.status === statusCompleted
       && hasId
-      && Boolean(mediaDownloadEndpoint);
+      && Boolean(mediaFilesTemplate)
+      && Boolean(mediaDownloadTemplate);
     if (canDownload) {
-      const downloadHref = `${mediaDownloadEndpoint}/${mediaId}`;
       buttons.push(
-        `<a href="${escapeHtml(downloadHref)}" class="btn btn-outline btn-xs">Download</a>`,
+        `<button type="button" class="btn btn-outline btn-xs" data-media-action="download" data-media-id="${mediaId}">Download</button>`,
       );
     }
 
@@ -233,22 +236,162 @@ function createDownloadsPage(root) {
     }
   }
 
-  function openInfoDialog(item) {
+  function wait(ms) {
+    return new Promise((resolve) => {
+      window.setTimeout(resolve, ms);
+    });
+  }
+
+  function renderFileNames(files) {
+    if (!infoFileNamesElement) {
+      return;
+    }
+
+    const names = Array.isArray(files) && files.length
+      ? files.map((file) => displayValue(file?.original_file_name))
+      : [EMPTY_VALUE];
+
+    infoFileNamesElement.innerHTML = names
+      .map((name) => `<li class="break-all">${escapeHtml(name)}</li>`)
+      .join('');
+  }
+
+  function saveName(file) {
+    const raw = typeof file?.original_file_name === 'string'
+      ? file.original_file_name.trim()
+      : '';
+    const base = raw.split(/[/\\]/).pop();
+    if (base) {
+      return base;
+    }
+    return `file-${file?.id || 'download'}`;
+  }
+
+  async function readMediaFiles(mediaId, { emptyWhenIncomplete = false } = {}) {
+    const response = await fetch(buildIdUrl(mediaFilesTemplate, mediaId), {
+      credentials: 'same-origin',
+    });
+    const body = await readJson(response);
+
+    if (response.status === 401) {
+      window.location.href = '/home/login';
+      const error = new Error('not authenticated');
+      error.status = 401;
+      throw error;
+    }
+
+    if (response.status === 409 && emptyWhenIncomplete) {
+      return [];
+    }
+
+    if (!response.ok) {
+      const error = new Error(body?.error || GENERIC_ERROR);
+      error.status = response.status;
+      throw error;
+    }
+
+    return Array.isArray(body?.files) ? body.files : [];
+  }
+
+  async function saveDownloadedFile(file) {
+    const response = await fetch(buildIdUrl(mediaDownloadTemplate, file.id), {
+      credentials: 'same-origin',
+    });
+
+    if (response.status === 401) {
+      window.location.href = '/home/login';
+      return false;
+    }
+
+    if (!response.ok) {
+      const body = await readJson(response);
+      throw new Error(body?.error || GENERIC_ERROR);
+    }
+
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = objectUrl;
+    anchor.download = saveName(file);
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+    return true;
+  }
+
+  async function openInfoDialog(item) {
     if (!infoDialog || !item) {
       return;
     }
 
+    const requestId = infoRequestId + 1;
+    infoRequestId = requestId;
+
     if (infoUrlElement) {
       infoUrlElement.textContent = displayValue(item.url);
     }
-    if (infoFileNameElement) {
-      infoFileNameElement.textContent = displayValue(item.original_file_name);
+    if (infoFileNamesElement) {
+      infoFileNamesElement.innerHTML = `<li class="break-all">${escapeHtml('Loading…')}</li>`;
     }
     if (infoCreatedElement) {
       infoCreatedElement.textContent = formatDate(item.created_at);
     }
 
     infoDialog.showModal();
+
+    const mediaId = Number(item.id);
+    if (!mediaFilesTemplate || !Number.isInteger(mediaId) || mediaId < 1) {
+      return;
+    }
+
+    try {
+      const files = await readMediaFiles(mediaId, { emptyWhenIncomplete: true });
+      if (requestId !== infoRequestId || !infoDialog.open) {
+        return;
+      }
+      renderFileNames(files);
+    } catch (error) {
+      if (requestId !== infoRequestId || error?.status === 401) {
+        return;
+      }
+      renderFileNames([]);
+      showError(errorElement, error.message || GENERIC_ERROR);
+    }
+  }
+
+  async function downloadMediaFiles(mediaId) {
+    if (!mediaFilesTemplate || !mediaDownloadTemplate || !Number.isInteger(mediaId) || mediaId < 1) {
+      return;
+    }
+
+    hideError(errorElement);
+    setBusy(true);
+
+    try {
+      const files = await readMediaFiles(mediaId);
+      if (!files.length) {
+        showError(errorElement, 'No files to download.');
+        return;
+      }
+
+      for (let index = 0; index < files.length; index += 1) {
+        const saved = await saveDownloadedFile(files[index]);
+        if (!saved) {
+          return;
+        }
+        if (index < files.length - 1) {
+          await wait(DOWNLOAD_FILE_GAP_MS);
+        }
+      }
+    } catch (error) {
+      if (error?.status === 401) {
+        return;
+      }
+      showError(errorElement, error.message || GENERIC_ERROR);
+    } finally {
+      setBusy(false);
+    }
   }
 
   function closeInfoDialog() {
@@ -414,6 +557,11 @@ function createDownloadsPage(root) {
     const action = button.dataset.mediaAction;
     if (action === 'info') {
       openInfoDialog(itemsById.get(mediaId));
+      return;
+    }
+
+    if (action === 'download') {
+      downloadMediaFiles(mediaId);
       return;
     }
 

@@ -1,6 +1,4 @@
-import { randomUUID } from 'node:crypto';
 import {
-  DISK_FILE_NAME,
   ID,
   STARTED_AT,
   STATUS,
@@ -26,19 +24,17 @@ export function claimNextPending(db) {
   }
 
   const id = Number(pending[ID]);
-  const diskStem = `${id}_${randomUUID()}`;
 
   const result = db
     .prepare(
       `UPDATE ${TABLE_NAME}
        SET ${STATUS} = ?,
-           ${DISK_FILE_NAME} = ?,
            ${STARTED_AT} = datetime('now'),
            ${UPDATED_AT} = datetime('now')
        WHERE ${ID} = ?
          AND ${STATUS} = ?`,
     )
-    .run(STATUSES.DOWNLOADING, diskStem, id, STATUSES.PENDING);
+    .run(STATUSES.DOWNLOADING, id, STATUSES.PENDING);
 
   if (!result.changes) {
     return null;

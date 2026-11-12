@@ -2,7 +2,6 @@ import { kickMediaDownload } from '../../api_cron_job/kickMediaDownload.js';
 import { getDb } from '../../database/DataManager.js';
 import {
   ACCOUNT_ID,
-  ORIGINAL_FILE_NAME,
   SITE,
   SOURCE,
   URL,
@@ -30,7 +29,6 @@ export function enqueue(req, res) {
       [SOURCE]: localSetting.SOURCE_TIKTOK,
       [SITE]: localSetting.SITE_TIKTOK_COM,
       [URL]: validated.url,
-      [ORIGINAL_FILE_NAME]: validated.originalFileName,
     });
 
     kickMediaDownload().catch((error) => {

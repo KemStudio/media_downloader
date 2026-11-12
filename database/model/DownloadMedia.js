@@ -6,8 +6,6 @@ export const SOURCE = 'source';
 export const SITE = 'site';
 export const URL = 'url';
 export const STATUS = 'status';
-export const ORIGINAL_FILE_NAME = 'original_file_name';
-export const DISK_FILE_NAME = 'disk_file_name';
 export const ERROR_MESSAGE = 'error_message';
 export const CREATED_AT = 'created_at';
 export const UPDATED_AT = 'updated_at';
@@ -21,8 +19,6 @@ export const FIELDS = Object.freeze({
   SITE,
   URL,
   STATUS,
-  ORIGINAL_FILE_NAME,
-  DISK_FILE_NAME,
   ERROR_MESSAGE,
   CREATED_AT,
   UPDATED_AT,
@@ -51,8 +47,6 @@ CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (
       '${STATUSES.COMPLETED}',
       '${STATUSES.FAILED}'
     )),
-  ${ORIGINAL_FILE_NAME} TEXT NULL,
-  ${DISK_FILE_NAME} TEXT NULL UNIQUE,
   ${ERROR_MESSAGE} TEXT NULL,
   ${CREATED_AT} TEXT NOT NULL DEFAULT (datetime('now')),
   ${UPDATED_AT} TEXT NOT NULL DEFAULT (datetime('now')),

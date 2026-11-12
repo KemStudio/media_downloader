@@ -1,9 +1,7 @@
 import {
-  DISK_FILE_NAME,
   ERROR_MESSAGE,
   FINISHED_AT,
   ID,
-  ORIGINAL_FILE_NAME,
   STARTED_AT,
   STATUS,
   STATUSES,
@@ -33,24 +31,6 @@ export function update(db, id, fields = {}) {
     }
     updates.push(`${STATUS} = ?`);
     values.push(fields[STATUS]);
-  }
-
-  if (fields[ORIGINAL_FILE_NAME] !== undefined) {
-    const value = fields[ORIGINAL_FILE_NAME];
-    if (value !== null && (typeof value !== 'string' || !value.trim())) {
-      throw new Error('original_file_name must be a non-empty string or null');
-    }
-    updates.push(`${ORIGINAL_FILE_NAME} = ?`);
-    values.push(value == null ? null : value.trim());
-  }
-
-  if (fields[DISK_FILE_NAME] !== undefined) {
-    const value = fields[DISK_FILE_NAME];
-    if (value !== null && (typeof value !== 'string' || !value.trim())) {
-      throw new Error('disk_file_name must be a non-empty string or null');
-    }
-    updates.push(`${DISK_FILE_NAME} = ?`);
-    values.push(value == null ? null : value.trim());
   }
 
   if (fields[ERROR_MESSAGE] !== undefined) {

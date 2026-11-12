@@ -1,3 +1,4 @@
+import tiktokUserPhoto from './tiktokUserPhoto.js';
 import tiktokUserVideo from './tiktokUserVideo.js';
 
 const DEFAULT_DOWNLOADER = {
@@ -14,8 +15,26 @@ function registryKey(source, site) {
   return `${String(source || '').trim()}:${String(site || '').trim()}`;
 }
 
-export function getDownloader(source, site) {
-  return registry.get(registryKey(source, site)) || DEFAULT_DOWNLOADER;
+function isPhotoPath(url) {
+  try {
+    return /\/photo(\/|$)/.test(new URL(String(url || '').trim()).pathname);
+  } catch {
+    return false;
+  }
+}
+
+export function getDownloader(source, site, url) {
+  const normalizedSource = String(source || '').trim();
+  const normalizedSite = String(site || '').trim();
+  if (
+    normalizedSource === tiktokUserPhoto.source
+    && normalizedSite === tiktokUserPhoto.site
+    && isPhotoPath(url)
+  ) {
+    return tiktokUserPhoto;
+  }
+
+  return registry.get(registryKey(normalizedSource, normalizedSite)) || DEFAULT_DOWNLOADER;
 }
 
 export default {
