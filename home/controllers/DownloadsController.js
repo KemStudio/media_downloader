@@ -1,4 +1,10 @@
-import { MEDIA_DELETE, MEDIA_DOWNLOAD, MEDIA_LIST, MEDIA_LIST_FILES } from '../../api/ApiUrl.js';
+import {
+  MEDIA_DELETE,
+  MEDIA_DOWNLOAD,
+  MEDIA_LIST,
+  MEDIA_LIST_FILES,
+  MEDIA_THUMBNAIL,
+} from '../../api/ApiUrl.js';
 import { MEDIA_PAGE_LIMIT } from '../../api_downloader/Setting.js';
 import { STATUSES } from '../../database/model/DownloadMedia.js';
 
@@ -12,6 +18,7 @@ export function index(req, res) {
     mediaFilesTemplate: MEDIA_LIST_FILES,
     mediaDownloadTemplate: MEDIA_DOWNLOAD,
     mediaDeleteTemplate: MEDIA_DELETE,
+    mediaThumbnailTemplate: MEDIA_THUMBNAIL,
     mediaPageLimit: MEDIA_PAGE_LIMIT,
     downloadStatuses: STATUSES,
     account: res.locals.account,

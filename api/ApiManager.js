@@ -16,6 +16,7 @@ import logoutRoutes from './routes/LogoutRoutes.js';
 import mediaDeleteRoutes from './routes/MediaDeleteRoutes.js';
 import mediaDownloadRoutes from './routes/MediaDownloadRoutes.js';
 import mediaListRoutes from './routes/MediaListRoutes.js';
+import mediaThumbnailRoutes from './routes/MediaThumbnailRoutes.js';
 import registerRoutes from './routes/RegisterRoutes.js';
 import sessionsRoutes from './routes/SessionsRoutes.js';
 import sessionsLogoutOthersRoutes from './routes/SessionsLogoutOthersRoutes.js';
@@ -55,6 +56,7 @@ export function init(app) {
   app.use(mediaDownloadRoutes);
   app.use(mediaListRoutes);
   app.use(mediaDeleteRoutes);
+  app.use(mediaThumbnailRoutes);
 }
 
 export default {

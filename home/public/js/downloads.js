@@ -56,6 +56,7 @@ function createDownloadsPage(root) {
   const mediaFilesTemplate = root.dataset.mediaFilesTemplate;
   const mediaDownloadTemplate = root.dataset.mediaDownloadTemplate;
   const mediaDeleteTemplate = root.dataset.mediaDeleteTemplate;
+  const mediaThumbnailTemplate = root.dataset.mediaThumbnailTemplate;
   const pageLimit = Number(root.dataset.pageLimit) || 20;
   const statusCompleted = root.dataset.statusCompleted || 'completed';
 
@@ -175,6 +176,29 @@ function createDownloadsPage(root) {
     return `<div class="flex flex-wrap gap-2">${buttons.join('')}</div>`;
   }
 
+  function thumbnailMarkup(item) {
+    const mediaId = Number(item.id);
+    const canPreview = item.status === statusCompleted
+      && mediaThumbnailTemplate
+      && Number.isInteger(mediaId)
+      && mediaId >= 1;
+
+    if (!canPreview) {
+      return '<div class="h-16 w-16 rounded bg-base-300/60" aria-hidden="true"></div>';
+    }
+
+    const src = buildIdUrl(mediaThumbnailTemplate, mediaId);
+    return `<img
+      src="${escapeHtml(src)}"
+      alt=""
+      loading="lazy"
+      width="64"
+      height="64"
+      class="h-16 w-16 rounded object-cover bg-base-300/60"
+      onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'h-16 w-16 rounded bg-base-300/60'}))"
+    >`;
+  }
+
   function renderRows(items) {
     itemsById.clear();
     if (tableBodyElement) {
@@ -187,7 +211,7 @@ function createDownloadsPage(root) {
     if (!items.length) {
       if (tableBodyElement) {
         tableBodyElement.innerHTML =
-          '<tr><td colspan="3" class="text-center text-base-content/65 py-4">No media found.</td></tr>';
+          '<tr><td colspan="4" class="text-center text-base-content/65 py-4">No media found.</td></tr>';
       }
       if (listElement) {
         listElement.innerHTML =
@@ -208,10 +232,12 @@ function createDownloadsPage(root) {
         ? `<div class="text-xs text-error mt-1">${escapeHtml(item.error_message)}</div>`
         : '';
       const actions = actionButtons(item);
+      const preview = thumbnailMarkup(item);
 
       if (tableBodyElement) {
         const row = document.createElement('tr');
         row.innerHTML = `
+          <td class="w-20">${preview}</td>
           <td>${escapeHtml(sourceLabel)}</td>
           <td>
             <div>${escapeHtml(statusLabel)}</div>
@@ -226,9 +252,14 @@ function createDownloadsPage(root) {
         const li = document.createElement('li');
         li.className = 'md-surface p-3 flex flex-col gap-1';
         li.innerHTML = `
-          <div class="font-medium">${escapeHtml(sourceLabel)}</div>
-          <div class="text-sm">${escapeHtml(statusLabel)}</div>
-          ${errorNote}
+          <div class="flex items-start gap-3">
+            <div class="shrink-0">${preview}</div>
+            <div class="min-w-0 flex-1">
+              <div class="font-medium">${escapeHtml(sourceLabel)}</div>
+              <div class="text-sm">${escapeHtml(statusLabel)}</div>
+              ${errorNote}
+            </div>
+          </div>
           <div class="mt-1">${actions}</div>
         `;
         listElement.appendChild(li);

@@ -6,6 +6,7 @@
   data-media-files-template="<%= mediaFilesTemplate %>"
   data-media-download-template="<%= mediaDownloadTemplate %>"
   data-media-delete-template="<%= mediaDeleteTemplate %>"
+  data-media-thumbnail-template="<%= mediaThumbnailTemplate %>"
   data-page-limit="<%= mediaPageLimit %>"
   data-status-pending="<%= downloadStatuses.PENDING %>"
   data-status-downloading="<%= downloadStatuses.DOWNLOADING %>"
@@ -76,6 +77,7 @@
       <table class="table table-sm">
         <thead>
           <tr>
+            <th>Preview</th>
             <th>Source</th>
             <th>Status</th>
             <th>Actions</th>

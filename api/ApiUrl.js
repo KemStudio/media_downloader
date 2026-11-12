@@ -16,3 +16,4 @@ export const MEDIA_DOWNLOAD = '/api/media-download/:id';
 export const MEDIA_LIST = '/api/media_list';
 export const MEDIA_LIST_FILES = '/api/media_list/:id/files';
 export const MEDIA_DELETE = '/api/media_delete/:id';
+export const MEDIA_THUMBNAIL = '/api/media_thumbnail/:id';

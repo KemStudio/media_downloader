@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const MEDIA_ROOT = path.join(__dirname, '..', '..', 'data', 'medias');
+const THUMBNAIL_SUFFIX = '.thumbnail.jpg';
 
 export function mediaDirFor(source, site) {
   return path.join(MEDIA_ROOT, source, site);
@@ -39,7 +40,11 @@ export async function findDownloadedFiles(dir, stem) {
   const matches = [];
 
   for (const name of entries) {
-    if (!isStemArtifactName(name, stem) || name.endsWith('.part')) {
+    if (
+      !isStemArtifactName(name, stem)
+      || name.endsWith('.part')
+      || name.toLowerCase().endsWith(THUMBNAIL_SUFFIX)
+    ) {
       continue;
     }
     const filePath = path.join(dir, name);

@@ -15,7 +15,7 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 
 const PORT = Number(process.env.PORT) || 3000;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
-const RATE_LIMIT_MAX = 100;
+const RATE_LIMIT_MAX = 200;
 
 DataManager.init();
 
