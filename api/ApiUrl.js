@@ -13,3 +13,4 @@ export const ACCESS_TOKENS = '/api/access-tokens';
 export const ACCESS_TOKEN_STATE = '/api/access-tokens/:id/state';
 export const ACCESS_TOKEN_BY_ID = '/api/access-tokens/:id';
 export const MEDIA_DOWNLOAD = '/api/media-download/:id';
+export const MEDIA_LIST = '/api/media_list';

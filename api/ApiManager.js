@@ -14,6 +14,7 @@ import changePasswordRoutes from './routes/ChangePasswordRoutes.js';
 import loginRoutes from './routes/LoginRoutes.js';
 import logoutRoutes from './routes/LogoutRoutes.js';
 import mediaDownloadRoutes from './routes/MediaDownloadRoutes.js';
+import mediaListRoutes from './routes/MediaListRoutes.js';
 import registerRoutes from './routes/RegisterRoutes.js';
 import sessionsRoutes from './routes/SessionsRoutes.js';
 import sessionsLogoutOthersRoutes from './routes/SessionsLogoutOthersRoutes.js';
@@ -51,6 +52,7 @@ export function init(app) {
   app.use(sessionsLogoutOthersRoutes);
   app.use(sessionsLogoutRoutes);
   app.use(mediaDownloadRoutes);
+  app.use(mediaListRoutes);
 }
 
 export default {

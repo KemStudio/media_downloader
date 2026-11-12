@@ -1,11 +1,11 @@
 import { getDb } from '../../database/DataManager.js';
 import { STATUSES } from '../../database/model/DownloadMedia.js';
 import { findPageByAccountId } from '../../database/modelCRUD/downloadMedia/FindPageByAccountId.js';
+import { MEDIA_PAGE_LIMIT } from '../../api_downloader/Setting.js';
 import {
   ACCOUNT_ID_SESSION_KEY,
   parseStartIndex,
-} from '../../api/utils/session.js';
-import localSetting from '../Setting.js';
+} from '../utils/session.js';
 
 const VALID_STATUSES = new Set(Object.values(STATUSES));
 const ALL_STATUSES = Object.values(STATUSES);
@@ -103,13 +103,13 @@ export function list(req, res) {
       return;
     }
   } else {
-    offset = (page - 1) * localSetting.MEDIA_PAGE_LIMIT;
+    offset = (page - 1) * MEDIA_PAGE_LIMIT;
   }
 
   try {
     const { downloadMedia, total } = findPageByAccountId(getDb(), accountId, {
       statuses,
-      limit: localSetting.MEDIA_PAGE_LIMIT,
+      limit: MEDIA_PAGE_LIMIT,
       offset,
     });
 
@@ -117,7 +117,7 @@ export function list(req, res) {
       download_media: downloadMedia,
       page,
       start_index: offset,
-      limit: localSetting.MEDIA_PAGE_LIMIT,
+      limit: MEDIA_PAGE_LIMIT,
       total,
     });
   } catch (error) {
