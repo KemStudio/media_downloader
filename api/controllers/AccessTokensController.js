@@ -67,7 +67,7 @@ export function list(req, res) {
   }
 
   try {
-    const { accessTokens, total } = findPageByAccountId(getDb(), accountId, {
+    const { accessTokens } = findPageByAccountId(getDb(), accountId, {
       states,
       limit: ACCESS_TOKENS_PAGE_LIMIT,
       offset: startIndex,
@@ -77,7 +77,6 @@ export function list(req, res) {
       access_tokens: accessTokens.map(toPublicAccessToken),
       start_index: startIndex,
       limit: ACCESS_TOKENS_PAGE_LIMIT,
-      total,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

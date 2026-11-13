@@ -37,7 +37,7 @@ export function list(req, res) {
   }
 
   try {
-    const { accounts, total } = findPage(getDb(), {
+    const { accounts } = findPage(getDb(), {
       states,
       limit: ACCOUNTS_PAGE_LIMIT,
       offset: startIndex,
@@ -47,7 +47,6 @@ export function list(req, res) {
       accounts: accounts.map(toPublicAccount),
       start_index: startIndex,
       limit: ACCOUNTS_PAGE_LIMIT,
-      total,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

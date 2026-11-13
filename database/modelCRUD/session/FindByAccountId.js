@@ -22,14 +22,6 @@ export function findByAccountId(
     AND ${EXPIRES_AT} > ?
   `;
 
-  const totalRow = db
-    .prepare(
-      `SELECT COUNT(*) AS count
-       FROM ${TABLE_NAME}
-       WHERE ${whereClause}`,
-    )
-    .get(accountId, nowIso);
-
   const rows = db
     .prepare(
       `SELECT ${ID}, ${DATA}, ${EXPIRES_AT}
@@ -49,6 +41,5 @@ export function findByAccountId(
       [DATA]: row[DATA],
       [EXPIRES_AT]: row[EXPIRES_AT],
     })),
-    total: totalRow?.count ?? 0,
   };
 }

@@ -142,7 +142,7 @@ export function list(req, res) {
   }
 
   try {
-    const { downloadMedia, total } = findPageByAccountId(getDb(), accountId, {
+    const { downloadMedia } = findPageByAccountId(getDb(), accountId, {
       statuses,
       limit: MEDIA_PAGE_LIMIT,
       offset,
@@ -153,7 +153,6 @@ export function list(req, res) {
       page,
       start_index: offset,
       limit: MEDIA_PAGE_LIMIT,
-      total,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

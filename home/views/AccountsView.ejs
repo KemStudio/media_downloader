@@ -77,17 +77,6 @@
     <ul id="accounts-list" class="md:hidden flex flex-col gap-3"></ul>
   </div>
 
-  <div class="flex items-center justify-between gap-3">
-    <button type="button" id="accounts-prev" class="btn btn-outline btn-sm gap-1.5" disabled>
-      <%- include('partials/icon', { name: 'caret-left', size: 'sm' }) %>
-      Previous
-    </button>
-    <span id="accounts-page-info" class="text-sm text-base-content/65"></span>
-    <button type="button" id="accounts-next" class="btn btn-outline btn-sm gap-1.5" disabled>
-      Next
-      <%- include('partials/icon', { name: 'caret-right', size: 'sm' }) %>
-    </button>
-  </div>
 </section>
 
 <%- include('partials/app-shell-end', { pageScript: '/js/accounts.js' }) %>

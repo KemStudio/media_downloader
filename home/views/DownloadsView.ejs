@@ -18,9 +18,17 @@
       <h1 class="md-page-title">Media</h1>
       <p class="md-page-desc">Track media for your account.</p>
     </header>
-    <button type="button" id="downloads-reload" class="btn btn-outline btn-sm shrink-0">
-      Reload
-    </button>
+    <div class="flex flex-wrap gap-2 shrink-0">
+      <button type="button" id="downloads-download-all" class="btn btn-outline btn-sm" disabled>
+        Download all
+      </button>
+      <button type="button" id="downloads-delete-all" class="btn btn-outline btn-error btn-sm" disabled>
+        Delete all
+      </button>
+      <button type="button" id="downloads-reload" class="btn btn-outline btn-sm">
+        Reload
+      </button>
+    </div>
   </div>
 
   <fieldset class="mb-5">
@@ -87,14 +95,6 @@
       </table>
     </div>
     <ul id="downloads-list" class="md:hidden flex flex-col gap-3"></ul>
-  </div>
-
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <p id="downloads-page-info" class="text-sm text-base-content/65"></p>
-    <div class="flex gap-2">
-      <button type="button" id="downloads-prev" class="btn btn-outline btn-sm" disabled>Previous</button>
-      <button type="button" id="downloads-next" class="btn btn-outline btn-sm" disabled>Next</button>
-    </div>
   </div>
 
   <dialog id="downloads-info-dialog" class="md-dialog">

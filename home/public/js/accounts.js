@@ -4,6 +4,7 @@ const EMPTY_VALUE = '—';
 const ROLE_ROOT = 'root';
 const ROLE_ADMIN = 'admin';
 const ROLE_USER = 'user';
+const SCROLL_NEAR_BOTTOM_PX = 240;
 
 function escapeHtml(value) {
   return String(value)
@@ -77,9 +78,6 @@ function createAccountsPage(root) {
   const listElement = document.getElementById('accounts-list');
   const statusElement = document.getElementById('accounts-status');
   const errorElement = document.getElementById('accounts-error');
-  const pageInfoElement = document.getElementById('accounts-page-info');
-  const prevButton = document.getElementById('accounts-prev');
-  const nextButton = document.getElementById('accounts-next');
   const filterInputs = [
     document.getElementById('filter-state-active'),
     document.getElementById('filter-state-deactive'),
@@ -87,8 +85,8 @@ function createAccountsPage(root) {
   ].filter(Boolean);
 
   let startIndex = 0;
-  let total = 0;
   let loading = false;
+  let exhausted = false;
 
   function selectedStates() {
     return filterInputs
@@ -100,14 +98,13 @@ function createAccountsPage(root) {
     return Boolean(tableBodyElement?.children.length || listElement?.children.length);
   }
 
+  function nearBottom() {
+    const doc = document.documentElement;
+    return window.innerHeight + window.scrollY >= doc.scrollHeight - SCROLL_NEAR_BOTTOM_PX;
+  }
+
   function setLoading(isLoading) {
     loading = isLoading;
-    if (prevButton) {
-      prevButton.disabled = isLoading || startIndex <= 0;
-    }
-    if (nextButton) {
-      nextButton.disabled = isLoading || startIndex + pageLimit >= total;
-    }
     filterInputs.forEach((input) => {
       input.disabled = isLoading;
     });
@@ -197,19 +194,26 @@ function createAccountsPage(root) {
     return `<div class="flex flex-wrap gap-2">${buttons.join('')}</div>`;
   }
 
-  function renderAccounts(accounts) {
+  function clearAccounts() {
+    if (tableBodyElement) {
+      tableBodyElement.innerHTML = '';
+    }
+    if (listElement) {
+      listElement.innerHTML = '';
+    }
+  }
+
+  function renderAccounts(accounts, { append = false } = {}) {
     if (!tableBodyElement && !listElement) {
       return;
     }
 
+    if (!append) {
+      clearAccounts();
+    }
+
     if (!accounts.length) {
-      if (tableBodyElement) {
-        tableBodyElement.innerHTML = '';
-      }
-      if (listElement) {
-        listElement.innerHTML = '';
-      }
-      if (statusElement) {
+      if (!append && statusElement) {
         statusElement.textContent = 'No accounts found.';
       }
       return;
@@ -253,100 +257,102 @@ function createAccountsPage(root) {
     }
 
     if (tableBodyElement) {
-      tableBodyElement.innerHTML = rows.join('');
+      if (append) {
+        tableBodyElement.insertAdjacentHTML('beforeend', rows.join(''));
+      } else {
+        tableBodyElement.innerHTML = rows.join('');
+      }
     }
     if (listElement) {
-      listElement.innerHTML = cards.join('');
+      if (append) {
+        listElement.insertAdjacentHTML('beforeend', cards.join(''));
+      } else {
+        listElement.innerHTML = cards.join('');
+      }
     }
   }
 
-  function updatePagination() {
-    const from = total === 0 ? 0 : startIndex + 1;
-    const to = Math.min(startIndex + pageLimit, total);
-
-    if (pageInfoElement) {
-      pageInfoElement.textContent = total === 0 ? '0 of 0' : `${from}–${to} of ${total}`;
+  async function loadAccounts({ reset = false } = {}) {
+    if (loading) {
+      return;
+    }
+    if (!reset && exhausted) {
+      return;
     }
 
-    if (prevButton) {
-      prevButton.disabled = loading || startIndex <= 0;
-    }
-    if (nextButton) {
-      nextButton.disabled = loading || startIndex + pageLimit >= total;
-    }
-  }
-
-  async function loadAccounts(nextStartIndex = startIndex) {
     const states = selectedStates();
 
     hideError(errorElement);
 
     if (!states.length) {
       startIndex = 0;
-      total = 0;
-      renderAccounts([]);
+      exhausted = true;
+      clearAccounts();
       if (statusElement) {
         statusElement.textContent = 'Select at least one state to load accounts.';
       }
-      updatePagination();
       return;
     }
 
-    setLoading(true);
-
-    if (statusElement && !hasRenderedAccounts()) {
-      statusElement.textContent = 'Loading accounts…';
+    if (reset) {
+      startIndex = 0;
+      exhausted = false;
+      clearAccounts();
     }
 
-    let requestStartIndex = nextStartIndex;
+    const requestStartIndex = startIndex;
+    setLoading(true);
+
+    if (statusElement) {
+      statusElement.textContent = reset || !hasRenderedAccounts()
+        ? 'Loading accounts…'
+        : 'Loading more…';
+    }
 
     try {
-      while (true) {
-        const url = new URL(accountsEndpoint, window.location.origin);
-        url.searchParams.set('start_index', String(requestStartIndex));
-        url.searchParams.set('state', states.join(','));
+      const url = new URL(accountsEndpoint, window.location.origin);
+      url.searchParams.set('start_index', String(requestStartIndex));
+      url.searchParams.set('state', states.join(','));
 
-        const response = await fetch(url, {
-          method: 'GET',
-          credentials: 'same-origin',
-        });
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'same-origin',
+      });
 
-        let payload = null;
-        try {
-          payload = await response.json();
-        } catch {
-          payload = null;
-        }
+      let payload = null;
+      try {
+        payload = await response.json();
+      } catch {
+        payload = null;
+      }
 
-        if (response.status === 401) {
-          window.location.href = '/home/login';
-          return;
-        }
-
-        if (response.status === 403) {
-          window.location.href = '/';
-          return;
-        }
-
-        if (!response.ok) {
-          showError(errorElement, payload?.error || GENERIC_ERROR);
-          if (statusElement) {
-            statusElement.textContent = '';
-          }
-          return;
-        }
-
-        startIndex = payload.start_index ?? requestStartIndex;
-        total = payload.total ?? 0;
-
-        if (startIndex > 0 && startIndex >= total) {
-          requestStartIndex = Math.max(0, Math.floor((total - 1) / pageLimit) * pageLimit);
-          continue;
-        }
-
-        renderAccounts(payload.accounts || []);
-        updatePagination();
+      if (response.status === 401) {
+        window.location.href = '/home/login';
         return;
+      }
+
+      if (response.status === 403) {
+        window.location.href = '/';
+        return;
+      }
+
+      if (!response.ok) {
+        showError(errorElement, payload?.error || GENERIC_ERROR);
+        if (statusElement) {
+          statusElement.textContent = '';
+        }
+        return;
+      }
+
+      const accounts = Array.isArray(payload?.accounts) ? payload.accounts : [];
+      renderAccounts(accounts, { append: !reset && hasRenderedAccounts() });
+      startIndex = requestStartIndex + accounts.length;
+      exhausted = accounts.length < pageLimit;
+
+      if (statusElement && accounts.length === 0 && !hasRenderedAccounts()) {
+        statusElement.textContent = 'No accounts found.';
+      } else if (statusElement) {
+        statusElement.textContent = '';
       }
     } catch {
       showError(errorElement, GENERIC_ERROR);
@@ -355,7 +361,6 @@ function createAccountsPage(root) {
       }
     } finally {
       setLoading(false);
-      updatePagination();
     }
   }
 
@@ -365,6 +370,8 @@ function createAccountsPage(root) {
     if (button) {
       button.disabled = true;
     }
+
+    let shouldReload = false;
 
     try {
       const response = await fetch(buildIdUrl(stateTemplate, accountId), {
@@ -398,12 +405,15 @@ function createAccountsPage(root) {
         return;
       }
 
-      await loadAccounts(startIndex);
+      shouldReload = true;
     } catch {
       showError(errorElement, GENERIC_ERROR);
     } finally {
       setLoading(false);
-      updatePagination();
+    }
+
+    if (shouldReload) {
+      await loadAccounts({ reset: true });
     }
   }
 
@@ -413,6 +423,8 @@ function createAccountsPage(root) {
     if (button) {
       button.disabled = true;
     }
+
+    let shouldReload = false;
 
     try {
       const response = await fetch(buildIdUrl(roleTemplate, accountId), {
@@ -446,12 +458,15 @@ function createAccountsPage(root) {
         return;
       }
 
-      await loadAccounts(startIndex);
+      shouldReload = true;
     } catch {
       showError(errorElement, GENERIC_ERROR);
     } finally {
       setLoading(false);
-      updatePagination();
+    }
+
+    if (shouldReload) {
+      await loadAccounts({ reset: true });
     }
   }
 
@@ -461,6 +476,8 @@ function createAccountsPage(root) {
     if (button) {
       button.disabled = true;
     }
+
+    let shouldReload = false;
 
     try {
       const response = await fetch(buildIdUrl(deleteTemplate, accountId), {
@@ -490,35 +507,33 @@ function createAccountsPage(root) {
         return;
       }
 
-      await loadAccounts(startIndex);
+      shouldReload = true;
     } catch {
       showError(errorElement, GENERIC_ERROR);
     } finally {
       setLoading(false);
-      updatePagination();
+    }
+
+    if (shouldReload) {
+      await loadAccounts({ reset: true });
     }
   }
 
-  prevButton?.addEventListener('click', () => {
-    if (loading || startIndex <= 0) {
+  function onScroll() {
+    if (loading || exhausted) {
       return;
     }
-    loadAccounts(Math.max(0, startIndex - pageLimit));
-  });
-
-  nextButton?.addEventListener('click', () => {
-    if (loading || startIndex + pageLimit >= total) {
-      return;
+    if (nearBottom()) {
+      loadAccounts({ reset: false });
     }
-    loadAccounts(startIndex + pageLimit);
-  });
+  }
 
   filterInputs.forEach((input) => {
     input.addEventListener('change', () => {
       if (loading) {
         return;
       }
-      loadAccounts(0);
+      loadAccounts({ reset: true });
     });
   });
 
@@ -557,7 +572,8 @@ function createAccountsPage(root) {
     }
   });
 
-  loadAccounts(0);
+  window.addEventListener('scroll', onScroll, { passive: true });
+  loadAccounts({ reset: true });
 }
 
 function initAccounts() {

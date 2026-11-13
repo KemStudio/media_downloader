@@ -2,7 +2,11 @@
 const GENERIC_ERROR = 'Something went wrong. Please try again.';
 const EMPTY_VALUE = '—';
 const DELETE_CONFIRM = 'Delete this media item?';
+const DELETE_ALL_CONFIRM = 'Delete all loaded media?';
+const NO_COMPLETED_DOWNLOAD = 'No completed media to download.';
 const DOWNLOAD_FILE_GAP_MS = 400;
+const DOWNLOAD_MEDIA_GAP_MS = 400;
+const SCROLL_NEAR_BOTTOM_PX = 240;
 
 function escapeHtml(value) {
   return String(value)
@@ -65,10 +69,9 @@ function createDownloadsPage(root) {
   const resultsElement = document.getElementById('downloads-results');
   const statusElement = document.getElementById('downloads-status');
   const errorElement = document.getElementById('downloads-error');
-  const pageInfoElement = document.getElementById('downloads-page-info');
-  const prevButton = document.getElementById('downloads-prev');
-  const nextButton = document.getElementById('downloads-next');
   const reloadButton = document.getElementById('downloads-reload');
+  const downloadAllButton = document.getElementById('downloads-download-all');
+  const deleteAllButton = document.getElementById('downloads-delete-all');
   const infoDialog = document.getElementById('downloads-info-dialog');
   const infoUrlElement = document.getElementById('downloads-info-url');
   const infoFileNamesElement = document.getElementById('downloads-info-file-names');
@@ -81,9 +84,9 @@ function createDownloadsPage(root) {
     document.getElementById('filter-status-failed'),
   ].filter(Boolean);
 
-  let page = 1;
-  let total = 0;
+  let startIndex = 0;
   let loading = false;
+  let exhausted = false;
   let infoRequestId = 0;
   const itemsById = new Map();
 
@@ -100,6 +103,30 @@ function createDownloadsPage(root) {
     return label;
   }
 
+  function loadedItems() {
+    return Array.from(itemsById.values());
+  }
+
+  function nearBottom() {
+    const doc = document.documentElement;
+    return window.innerHeight + window.scrollY >= doc.scrollHeight - SCROLL_NEAR_BOTTOM_PX;
+  }
+
+  function updateBulkButtons() {
+    const items = loadedItems();
+    const hasItems = items.length > 0;
+    const hasCompleted = items.some((item) => item.status === statusCompleted);
+
+    if (downloadAllButton) {
+      downloadAllButton.disabled = loading || !hasCompleted
+        || !mediaFilesTemplate
+        || !mediaDownloadTemplate;
+    }
+    if (deleteAllButton) {
+      deleteAllButton.disabled = loading || !hasItems || !mediaDeleteTemplate;
+    }
+  }
+
   function setBusy(isBusy) {
     loading = isBusy;
     if (reloadButton) {
@@ -108,15 +135,10 @@ function createDownloadsPage(root) {
     filterInputs.forEach((input) => {
       input.disabled = isBusy;
     });
-    if (prevButton) {
-      prevButton.disabled = isBusy || page <= 1;
-    }
-    if (nextButton) {
-      nextButton.disabled = isBusy || page * pageLimit >= total;
-    }
     resultsElement?.querySelectorAll('[data-media-action]').forEach((button) => {
       button.disabled = isBusy;
     });
+    updateBulkButtons();
   }
 
   async function readJson(response) {
@@ -127,22 +149,16 @@ function createDownloadsPage(root) {
     }
   }
 
-  function updatePagination() {
-    if (pageInfoElement) {
-      if (total === 0) {
-        pageInfoElement.textContent = 'No media';
-      } else {
-        const from = (page - 1) * pageLimit + 1;
-        const to = Math.min(page * pageLimit, total);
-        pageInfoElement.textContent = `${from}–${to} of ${total}`;
-      }
+  function updateLoadedStatus() {
+    if (!statusElement) {
+      return;
     }
-    if (prevButton) {
-      prevButton.disabled = loading || page <= 1;
+    const count = itemsById.size;
+    if (count === 0) {
+      statusElement.textContent = '';
+      return;
     }
-    if (nextButton) {
-      nextButton.disabled = loading || page * pageLimit >= total;
-    }
+    statusElement.textContent = `${count} media item${count === 1 ? '' : 's'} loaded`;
   }
 
   function actionButtons(item) {
@@ -199,7 +215,7 @@ function createDownloadsPage(root) {
     >`;
   }
 
-  function renderRows(items) {
+  function clearRows() {
     itemsById.clear();
     if (tableBodyElement) {
       tableBodyElement.innerHTML = '';
@@ -207,19 +223,20 @@ function createDownloadsPage(root) {
     if (listElement) {
       listElement.innerHTML = '';
     }
+  }
 
-    if (!items.length) {
-      if (tableBodyElement) {
-        tableBodyElement.innerHTML =
-          '<tr><td colspan="4" class="text-center text-base-content/65 py-4">No media found.</td></tr>';
-      }
-      if (listElement) {
-        listElement.innerHTML =
-          '<li class="text-sm text-base-content/65">No media found.</li>';
-      }
-      return;
+  function showEmptyRows() {
+    if (tableBodyElement) {
+      tableBodyElement.innerHTML =
+        '<tr><td colspan="4" class="text-center text-base-content/65 py-4">No media found.</td></tr>';
     }
+    if (listElement) {
+      listElement.innerHTML =
+        '<li class="text-sm text-base-content/65">No media found.</li>';
+    }
+  }
 
+  function appendItemRows(items) {
     for (const item of items) {
       const mediaId = Number(item.id);
       if (Number.isInteger(mediaId) && mediaId >= 1) {
@@ -265,6 +282,21 @@ function createDownloadsPage(root) {
         listElement.appendChild(li);
       }
     }
+  }
+
+  function renderRows(items, { append = false } = {}) {
+    if (!append) {
+      clearRows();
+    }
+
+    if (!items.length) {
+      if (!append) {
+        showEmptyRows();
+      }
+      return;
+    }
+
+    appendItemRows(items);
   }
 
   function wait(ms) {
@@ -391,6 +423,29 @@ function createDownloadsPage(root) {
     }
   }
 
+  async function downloadMediaFilesById(mediaId) {
+    if (!mediaFilesTemplate || !mediaDownloadTemplate || !Number.isInteger(mediaId) || mediaId < 1) {
+      return true;
+    }
+
+    const files = await readMediaFiles(mediaId);
+    if (!files.length) {
+      throw new Error('No files to download.');
+    }
+
+    for (let index = 0; index < files.length; index += 1) {
+      const saved = await saveDownloadedFile(files[index]);
+      if (!saved) {
+        return false;
+      }
+      if (index < files.length - 1) {
+        await wait(DOWNLOAD_FILE_GAP_MS);
+      }
+    }
+
+    return true;
+  }
+
   async function downloadMediaFiles(mediaId) {
     if (!mediaFilesTemplate || !mediaDownloadTemplate || !Number.isInteger(mediaId) || mediaId < 1) {
       return;
@@ -400,26 +455,53 @@ function createDownloadsPage(root) {
     setBusy(true);
 
     try {
-      const files = await readMediaFiles(mediaId);
-      if (!files.length) {
-        showError(errorElement, 'No files to download.');
-        return;
-      }
-
-      for (let index = 0; index < files.length; index += 1) {
-        const saved = await saveDownloadedFile(files[index]);
-        if (!saved) {
-          return;
-        }
-        if (index < files.length - 1) {
-          await wait(DOWNLOAD_FILE_GAP_MS);
-        }
-      }
+      await downloadMediaFilesById(mediaId);
     } catch (error) {
       if (error?.status === 401) {
         return;
       }
       showError(errorElement, error.message || GENERIC_ERROR);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function downloadAllCurrentPage() {
+    if (loading) {
+      return;
+    }
+
+    const mediaIds = loadedItems()
+      .filter((item) => item.status === statusCompleted)
+      .map((item) => Number(item.id))
+      .filter((mediaId) => Number.isInteger(mediaId) && mediaId >= 1);
+
+    if (!mediaIds.length) {
+      showError(errorElement, NO_COMPLETED_DOWNLOAD);
+      return;
+    }
+
+    hideError(errorElement);
+    setBusy(true);
+
+    try {
+      for (let index = 0; index < mediaIds.length; index += 1) {
+        try {
+          const continued = await downloadMediaFilesById(mediaIds[index]);
+          if (!continued) {
+            return;
+          }
+        } catch (error) {
+          if (error?.status === 401) {
+            return;
+          }
+          showError(errorElement, error.message || GENERIC_ERROR);
+        }
+
+        if (index < mediaIds.length - 1) {
+          await wait(DOWNLOAD_MEDIA_GAP_MS);
+        }
+      }
     } finally {
       setBusy(false);
     }
@@ -432,37 +514,47 @@ function createDownloadsPage(root) {
     infoDialog.close();
   }
 
-  async function loadDownloads({ keepPage = true } = {}) {
+  async function loadDownloads({ reset = false } = {}) {
     if (loading) {
+      return;
+    }
+    if (!reset && exhausted) {
       return;
     }
 
     const statuses = selectedStatuses();
+    hideError(errorElement);
+
     if (!statuses.length) {
-      hideError(errorElement);
-      total = 0;
-      page = 1;
-      renderRows([]);
+      startIndex = 0;
+      exhausted = true;
+      clearRows();
       if (statusElement) {
         statusElement.textContent = 'Select at least one status.';
       }
-      updatePagination();
+      updateBulkButtons();
       return;
     }
 
-    if (!keepPage) {
-      page = 1;
+    if (reset) {
+      startIndex = 0;
+      exhausted = false;
+      clearRows();
     }
 
+    const requestStartIndex = startIndex;
+    const append = !reset && itemsById.size > 0;
     setBusy(true);
-    hideError(errorElement);
+
     if (statusElement) {
-      statusElement.textContent = 'Loading media…';
+      statusElement.textContent = reset || !append
+        ? 'Loading media…'
+        : 'Loading more…';
     }
 
     try {
       const params = new URLSearchParams();
-      params.set('page', String(page));
+      params.set('start_index', String(requestStartIndex));
       params.set('status', statuses.join(','));
 
       const response = await fetch(`${mediaEndpoint}?${params.toString()}`, {
@@ -474,27 +566,52 @@ function createDownloadsPage(root) {
       }
 
       const items = Array.isArray(body?.download_media) ? body.download_media : [];
-      total = Number.isInteger(body?.total) ? body.total : 0;
-      if (Number.isInteger(body?.page) && body.page >= 1) {
-        page = body.page;
+      renderRows(items, { append });
+      startIndex = requestStartIndex + items.length;
+      exhausted = items.length < pageLimit;
+      updateLoadedStatus();
+      if (items.length === 0 && itemsById.size === 0 && statusElement) {
+        statusElement.textContent = 'No media found.';
       }
-
-      renderRows(items);
-      if (statusElement) {
-        statusElement.textContent = `${total} media item${total === 1 ? '' : 's'}`;
-      }
-      updatePagination();
+      updateBulkButtons();
     } catch (error) {
-      renderRows([]);
-      total = 0;
+      if (!append) {
+        clearRows();
+        showEmptyRows();
+      }
       if (statusElement) {
         statusElement.textContent = 'Could not load media.';
       }
       showError(errorElement, error.message || GENERIC_ERROR);
-      updatePagination();
+      updateBulkButtons();
     } finally {
       setBusy(false);
     }
+  }
+
+  async function deleteMediaById(mediaId) {
+    if (!mediaDeleteTemplate || !Number.isInteger(mediaId) || mediaId < 1) {
+      return { ok: true };
+    }
+
+    const response = await fetch(buildIdUrl(mediaDeleteTemplate, mediaId), {
+      method: 'DELETE',
+      credentials: 'same-origin',
+    });
+    const body = await readJson(response);
+
+    if (response.status === 401) {
+      window.location.href = '/home/login';
+      return { ok: false, unauthorized: true };
+    }
+
+    if (!response.ok) {
+      const error = new Error(body?.error || GENERIC_ERROR);
+      error.status = response.status;
+      throw error;
+    }
+
+    return { ok: true };
   }
 
   async function deleteMedia(mediaId, button) {
@@ -512,55 +629,94 @@ function createDownloadsPage(root) {
       button.disabled = true;
     }
 
+    let shouldReload = false;
+
     try {
-      const response = await fetch(buildIdUrl(mediaDeleteTemplate, mediaId), {
-        method: 'DELETE',
-        credentials: 'same-origin',
-      });
-      const body = await readJson(response);
-
-      if (response.status === 401) {
-        window.location.href = '/home/login';
+      const result = await deleteMediaById(mediaId);
+      if (result.unauthorized) {
         return;
       }
 
-      if (!response.ok) {
-        showError(errorElement, body?.error || GENERIC_ERROR);
-        return;
-      }
-
-      setBusy(false);
-      await loadDownloads();
+      shouldReload = true;
     } catch (error) {
       showError(errorElement, error.message || GENERIC_ERROR);
     } finally {
       setBusy(false);
     }
+
+    if (shouldReload) {
+      await loadDownloads({ reset: true });
+    }
+  }
+
+  async function deleteAllCurrentPage() {
+    if (loading) {
+      return;
+    }
+
+    const mediaIds = loadedItems()
+      .map((item) => Number(item.id))
+      .filter((mediaId) => Number.isInteger(mediaId) && mediaId >= 1);
+
+    if (!mediaIds.length) {
+      return;
+    }
+
+    if (!window.confirm(DELETE_ALL_CONFIRM)) {
+      return;
+    }
+
+    hideError(errorElement);
+    setBusy(true);
+    let shouldReload = false;
+
+    try {
+      for (const mediaId of mediaIds) {
+        try {
+          const result = await deleteMediaById(mediaId);
+          if (result.unauthorized) {
+            return;
+          }
+          shouldReload = true;
+        } catch (error) {
+          showError(errorElement, error.message || GENERIC_ERROR);
+        }
+      }
+    } catch (error) {
+      showError(errorElement, error.message || GENERIC_ERROR);
+    } finally {
+      setBusy(false);
+    }
+
+    if (shouldReload) {
+      await loadDownloads({ reset: true });
+    }
+  }
+
+  function onScroll() {
+    if (loading || exhausted) {
+      return;
+    }
+    if (nearBottom()) {
+      loadDownloads({ reset: false });
+    }
   }
 
   reloadButton?.addEventListener('click', () => {
-    loadDownloads();
+    loadDownloads({ reset: true });
   });
 
-  prevButton?.addEventListener('click', () => {
-    if (loading || page <= 1) {
-      return;
-    }
-    page -= 1;
-    loadDownloads();
+  downloadAllButton?.addEventListener('click', () => {
+    downloadAllCurrentPage();
   });
 
-  nextButton?.addEventListener('click', () => {
-    if (loading || page * pageLimit >= total) {
-      return;
-    }
-    page += 1;
-    loadDownloads();
+  deleteAllButton?.addEventListener('click', () => {
+    deleteAllCurrentPage();
   });
 
   filterInputs.forEach((input) => {
     input.addEventListener('change', () => {
-      loadDownloads({ keepPage: false });
+      loadDownloads({ reset: true });
     });
   });
 
@@ -601,7 +757,8 @@ function createDownloadsPage(root) {
     }
   });
 
-  loadDownloads({ keepPage: false });
+  window.addEventListener('scroll', onScroll, { passive: true });
+  loadDownloads({ reset: true });
 }
 
 const root = document.getElementById('downloads-page');

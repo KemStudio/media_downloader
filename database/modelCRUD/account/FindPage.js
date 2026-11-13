@@ -22,14 +22,6 @@ export function findPage(db, { states, limit, offset } = {}) {
   const placeholders = states.map(() => '?').join(', ');
   const whereClause = `${STATE} IN (${placeholders})`;
 
-  const totalRow = db
-    .prepare(
-      `SELECT COUNT(*) AS count
-       FROM ${TABLE_NAME}
-       WHERE ${whereClause}`,
-    )
-    .get(...states);
-
   const rows = db
     .prepare(
       `SELECT *
@@ -42,6 +34,5 @@ export function findPage(db, { states, limit, offset } = {}) {
 
   return {
     accounts: rows.map(mapAccount),
-    total: totalRow?.count ?? 0,
   };
 }

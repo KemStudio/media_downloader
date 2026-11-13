@@ -32,14 +32,6 @@ export function findPageByAccountId(db, accountId, { states, limit, offset } = {
   const whereClause = `${ACCOUNT_ID} = ? AND ${STATE} IN (${placeholders})`;
   const params = [accountId, ...states];
 
-  const totalRow = db
-    .prepare(
-      `SELECT COUNT(*) AS count
-       FROM ${TABLE_NAME}
-       WHERE ${whereClause}`,
-    )
-    .get(...params);
-
   const rows = db
     .prepare(
       `SELECT *
@@ -52,6 +44,5 @@ export function findPageByAccountId(db, accountId, { states, limit, offset } = {
 
   return {
     accessTokens: rows.map(mapAccessToken),
-    total: totalRow?.count ?? 0,
   };
 }
